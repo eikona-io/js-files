@@ -9,15 +9,20 @@ if (toolbarJSON) {
   posthog.loadToolbar(JSON.parse(toolbarJSON))
 }
 
-// initialize sanity client
-const client = createClient({
-  projectId: 'srk0ofy4',
-  dataset: 'production',
-  useCdn: true,
-  apiVersion: '2024-01-01'
-});
+// Initialize Sanity client and image builder
+let client;
+let builder;
 
-const builder = imageUrlBuilder(client)
+function initializeSanity(projectId, dataset = 'production', apiVersion = '2024-01-01') {
+  client = createClient({
+    projectId,
+    dataset,
+    useCdn: true,
+    apiVersion,
+  });
+  builder = imageUrlBuilder(client);
+}
+
 function urlForImage(source) {
   return builder.image(source).url()
 }
@@ -26,7 +31,18 @@ async function fetchExperiment(experimentId) {
   return await client.fetch(`*[_type == "experiment" && id == $id][0]`, { id: experimentId });
 }
 
-export function loadExperiments(experimentIds) {
+export function initializeAndLoadExperiments(posthogToken, sanityProjectId, experimentIds) {
+  // Initialize PostHog
+  posthog.init(posthogToken, {api_host:'https://us.i.posthog.com', person_profiles: 'always', enable_heatmaps: true});
+  
+  // Initialize Sanity
+  initializeSanity(sanityProjectId);
+
+  // Load experiments
+  loadExperiments(experimentIds);
+}
+
+function loadExperiments(experimentIds) {
   posthog.onFeatureFlags(function () {
     experimentIds.forEach(expId => {
       const variant = posthog.getFeatureFlag(expId);
