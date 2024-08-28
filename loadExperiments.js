@@ -65,6 +65,9 @@ function loadExperiments(experimentIds) {
       }
       
       fetchExperiment(expId).then(exp => {
+        if (variant === 'control') {
+          return;
+        }
         const variantKey = `variant_${variant.slice(-1)}`;
         if (exp[variantKey]) {
           const imageUrl = urlForImage(exp[variantKey]);
