@@ -55,7 +55,7 @@ function loadExperiments(experimentIds) {
         // For "everything" pattern
         const baseId = expId.slice(0, -2); // Remove '-_' suffix
         elements = document.querySelectorAll(`[id^="${baseId}"]`);
-        expId = expId + variant; // get the full experiment ID
+        expId = expId + variantKey; // get the full experiment ID
       } else {
         // For exact match
         const element = document.getElementById(expId);
