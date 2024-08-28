@@ -66,7 +66,7 @@ function loadExperiments(experimentIds) {
               element.style.cssText = `background: url('${imageUrl}'); background-repeat: no-repeat; background-position: center; background-size: cover;`;
             } else if (tagName === 'video') {
               element.poster = imageUrl;
-              element.querySelector('source').src = imageUrl;
+              element.querySelector('source').src = "";
               element.querySelector('img').src = imageUrl;
             }
           }
