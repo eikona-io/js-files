@@ -50,9 +50,9 @@ function loadExperiments(experimentIds) {
       }
       
       let elements;
-      if (expId.endsWith('-*')) {
+      if (expId.endsWith('-_')) {
         // For "everything" pattern
-        const baseId = expId.slice(0, -2); // Remove '-*' suffix
+        const baseId = expId.slice(0, -2); // Remove '-_' suffix
         elements = document.querySelectorAll(`[id^="${baseId}"]`);
       } else {
         // For exact match
