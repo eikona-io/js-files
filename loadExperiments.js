@@ -23,7 +23,7 @@ function initializeSanity(projectId, dataset = 'production', apiVersion = '2024-
 }
 
 function urlForImage(source) {
-  return builder.image(source).url()
+  return builder.image(source).auto('format').url()
 }
 
 async function fetchExperimentAsstes(experimentIdPrefix) {
