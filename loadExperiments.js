@@ -50,10 +50,12 @@ function loadExperiments(experimentIds) {
       }
       
       let elements;
+      const variantKey = `variant_${variant.slice(-1)}`;
       if (expId.endsWith('-_')) {
         // For "everything" pattern
         const baseId = expId.slice(0, -2); // Remove '-_' suffix
         elements = document.querySelectorAll(`[id^="${baseId}"]`);
+        expId = expId + variant; // get the full experiment ID
       } else {
         // For exact match
         const element = document.getElementById(expId);
@@ -68,7 +70,6 @@ function loadExperiments(experimentIds) {
         if (variant === 'control') {
           return;
         }
-        const variantKey = `variant_${variant.slice(-1)}`;
         if (exp[variantKey]) {
           const imageUrl = urlForImage(exp[variantKey]);
           
