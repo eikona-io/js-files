@@ -56,6 +56,7 @@ function loadExperiments(experimentIds) {
         const baseId = expId.slice(0, -2); // Remove '-_' suffix
         elements = document.querySelectorAll(`[id^="${baseId}"]`);
         expId = expId + variantKey; // get the full experiment ID
+        console.log(expId);
       } else {
         // For exact match
         const element = document.getElementById(expId);
@@ -66,6 +67,7 @@ function loadExperiments(experimentIds) {
         throw new Error(`No elements with ID ${expId} exist in the document`);
       }
       
+      console.log(expId);
       fetchExperiment(expId).then(exp => {
         if (variant === 'control') {
           return;
