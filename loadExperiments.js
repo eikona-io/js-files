@@ -48,32 +48,46 @@ function loadExperiments(experimentIds) {
       if (variant === null) {
         throw new Error(`Experiment with ID ${expId} does not exist`);
       }
-      const element = document.getElementById(expId);
-      if (!element) {
-        throw new Error(`Element with ID ${expId} does not exist in the document`);
+      
+      let elements;
+      if (expId.endsWith('-*')) {
+        // For "everything" pattern
+        const baseId = expId.slice(0, -2); // Remove '-*' suffix
+        elements = document.querySelectorAll(`[id^="${baseId}"]`);
+      } else {
+        // For exact match
+        const element = document.getElementById(expId);
+        elements = element ? [element] : [];
       }
       
-      const tagName = element.tagName.toLowerCase();
-      if (['img', 'div', 'video'].includes(tagName)) {
-        fetchExperiment(expId).then(exp => {
-          const variantKey = `variant_${variant.slice(-1)}`;
-          if (exp[variantKey]) {
-            const imageUrl = urlForImage(exp[variantKey]);
-            if (tagName === 'img') {
-              element.src = imageUrl;
-              element.srcset = "";
-            } else if (tagName === 'div') {
-              element.style.cssText = `background: url('${imageUrl}'); background-repeat: no-repeat; background-position: center; background-size: cover;`;
-            } else if (tagName === 'video') {
-              element.poster = imageUrl;
-              element.querySelector('source').src = "";
-              element.querySelector('img').src = imageUrl;
-            }
-          }
-        });
-      } else {
-        console.warn(`Unsupported element type for ID ${expId}: ${tagName}`);
+      if (elements.length === 0) {
+        throw new Error(`No elements with ID ${expId} exist in the document`);
       }
+      
+      fetchExperiment(expId).then(exp => {
+        const variantKey = `variant_${variant.slice(-1)}`;
+        if (exp[variantKey]) {
+          const imageUrl = urlForImage(exp[variantKey]);
+          
+          elements.forEach(element => {
+            const tagName = element.tagName.toLowerCase();
+            if (['img', 'div', 'video'].includes(tagName)) {
+              if (tagName === 'img') {
+                element.src = imageUrl;
+                element.srcset = "";
+              } else if (tagName === 'div') {
+                element.style.cssText = `background: url('${imageUrl}'); background-repeat: no-repeat; background-position: center; background-size: cover;`;
+              } else if (tagName === 'video') {
+                element.poster = imageUrl;
+                element.querySelector('source').src = "";
+                element.querySelector('img').src = imageUrl;
+              }
+            } else {
+              console.warn(`Unsupported element type for ID ${element.id}: ${tagName}`);
+            }
+          });
+        }
+      });
     });
   });
 }
