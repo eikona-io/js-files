@@ -27,7 +27,7 @@ function urlForImage(source) {
 }
 
 async function fetchExperimentAsstes(experimentIdPrefix) {
-  return await client.fetch(`*[_type == "experiment" && id match $idPrefix + "*"]`, { idPrefix: experimentIdPrefix });
+  return await client.fetch(`*[_type == "experiment" && id match $idPrefix]`, { idPrefix: experimentIdPrefix });
 }
 
 export function initializeAndLoadExperiments(posthogToken, sanityProjectId, experimentIds) {
@@ -55,7 +55,8 @@ function loadExperiments(experimentIds) {
       if (expId.endsWith('-_')) {
         // For "everything" pattern
         expId = expId.slice(0, -2); // Remove '-_' suffix (can't do * in posthog experiment id)
-        elements = document.querySelectorAll(`[id^="${baseId}"]`);
+        elements = document.querySelectorAll(`[id^="${expId}"]`);
+        expId = expId + "*";
       } else {
         // For exact match
         const element = document.getElementById(expId);
