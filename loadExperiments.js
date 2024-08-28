@@ -90,9 +90,14 @@ function loadExperiments(experimentIds) {
                   } else if (tagName === 'div') {
                     element.style.cssText = `background: url('${imageUrl}'); background-repeat: no-repeat; background-position: center; background-size: cover;`;
                   } else if (tagName === 'video') {
-                    element.poster = imageUrl;
-                    element.querySelector('source').src = "";
-                    element.querySelector('img').src = imageUrl;
+                    // for now replace the video with an image
+                    // TODO: omerh -> support replacing the video with the new video
+                    const img = document.createElement('img');
+                    img.src = imageUrl;
+                    img.id = element.id;
+                    img.alt = element.alt || '';
+                    img.className = element.className;
+                    element.parentNode.replaceChild(img, element);
                   }
                 } else {
                   console.warn(`Unsupported element type for ID ${element.id}: ${tagName}`);
