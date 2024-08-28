@@ -48,19 +48,31 @@ function loadExperiments(experimentIds) {
       if (variant === null) {
         throw new Error(`Experiment with ID ${expId} does not exist`);
       }
-      const img = document.getElementById(expId);
-      if (!img) {
-        throw new Error(`Image element with ID ${expId} does not exist in the document`);
+      const element = document.getElementById(expId);
+      if (!element) {
+        throw new Error(`Element with ID ${expId} does not exist in the document`);
       }
       
-      if (img) {
+      const tagName = element.tagName.toLowerCase();
+      if (['img', 'div', 'video'].includes(tagName)) {
         fetchExperiment(expId).then(exp => {
           const variantKey = `variant_${variant.slice(-1)}`;
           if (exp[variantKey]) {
-            img.src = urlForImage(exp[variantKey]);
-            img.srcset = "";
+            const imageUrl = urlForImage(exp[variantKey]);
+            if (tagName === 'img') {
+              element.src = imageUrl;
+              element.srcset = "";
+            } else if (tagName === 'div') {
+              element.style.cssText = `background: url('${imageUrl}'); background-repeat: no-repeat; background-position: center; background-size: cover;`;
+            } else if (tagName === 'video') {
+              element.poster = imageUrl;
+              element.querySelector('source').src = imageUrl;
+              element.querySelector('img').src = imageUrl;
+            }
           }
         });
+      } else {
+        console.warn(`Unsupported element type for ID ${expId}: ${tagName}`);
       }
     });
   });
