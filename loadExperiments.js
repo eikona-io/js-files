@@ -47,6 +47,7 @@ function loadExperiments(experimentIds) {
       const variant = posthog.getFeatureFlag(expId);
       if (variant === undefined) {
         console.log(`Experiment with ID ${expId} does not exist`);
+        return;
       }
 
       let elements;
