@@ -54,7 +54,7 @@ function loadExperiments(experimentIds) {
       const variantKey = `variant_${variantLetter}`;
       if (expId.endsWith('-_')) {
         // For "everything" pattern
-        baseId = expId.slice(0, -2); // Remove '-_' suffix (can't do * in posthog experiment id)
+        expId = expId.slice(0, -2); // Remove '-_' suffix (can't do * in posthog experiment id)
         elements = document.querySelectorAll(`[id^="${baseId}"]`);
       } else {
         // For exact match
