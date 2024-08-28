@@ -45,7 +45,7 @@ function loadExperiments(experimentIds) {
   posthog.onFeatureFlags(function () {
     experimentIds.forEach(expId => {
       const variant = posthog.getFeatureFlag(expId);
-      if (variant === null) {
+      if (variant === undefined) {
         throw new Error(`Experiment with ID ${expId} does not exist`);
       }
 
