@@ -74,22 +74,29 @@ function loadExperiments(experimentIds) {
         for (const asset of experimentsAssets) {
           if (asset[variantKey]) {
             const imageUrl = urlForImage(asset[variantKey]);
-
+            const assetId = asset.id;
             elements.forEach(element => {
-              const tagName = element.tagName.toLowerCase();
-              if (['img', 'div', 'video'].includes(tagName)) {
-                if (tagName === 'img') {
-                  element.src = imageUrl;
-                  element.srcset = "";
-                } else if (tagName === 'div') {
-                  element.style.cssText = `background: url('${imageUrl}'); background-repeat: no-repeat; background-position: center; background-size: cover;`;
-                } else if (tagName === 'video') {
-                  element.poster = imageUrl;
-                  element.querySelector('source').src = "";
-                  element.querySelector('img').src = imageUrl;
+              const elementId = element.id;
+              // check that we are changing the right element
+              // (the experiments in the CMS have the same ID as the elements)
+              if (assetId === elementId) {
+                const tagName = element.tagName.toLowerCase();
+                // change the element to the new image
+                // each element type has a different way to change the image
+                if (['img', 'div', 'video'].includes(tagName)) {
+                  if (tagName === 'img') {
+                    element.src = imageUrl;
+                    element.srcset = "";
+                  } else if (tagName === 'div') {
+                    element.style.cssText = `background: url('${imageUrl}'); background-repeat: no-repeat; background-position: center; background-size: cover;`;
+                  } else if (tagName === 'video') {
+                    element.poster = imageUrl;
+                    element.querySelector('source').src = "";
+                    element.querySelector('img').src = imageUrl;
+                  }
+                } else {
+                  console.warn(`Unsupported element type for ID ${element.id}: ${tagName}`);
                 }
-              } else {
-                console.warn(`Unsupported element type for ID ${element.id}: ${tagName}`);
               }
             });
           }
