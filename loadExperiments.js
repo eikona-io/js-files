@@ -12,7 +12,7 @@ if (toolbarJSON) {
 let client;
 let builder;
 
-function initializeSanity(projectId, dataset = 'production', apiVersion = '2024-01-01') {
+function initializeSanity(projectId, dataset, apiVersion = '2024-01-01') {
   client = createClient({
     projectId,
     dataset,
@@ -30,12 +30,12 @@ async function fetchExperimentAsstes(experimentIdPrefix) {
   return await client.fetch(`*[_type == "experiment" && id match $idPrefix]`, { idPrefix: experimentIdPrefix });
 }
 
-export function initializeAndLoadExperiments(posthogToken, sanityProjectId, experimentIds) {
+export function initializeAndLoadExperiments(posthogToken, sanityProjectId, experimentIds, dataset = 'production') {
   // Initialize PostHog
   posthog.init(posthogToken, { api_host: 'https://us.i.posthog.com', person_profiles: 'always', enable_heatmaps: true });
 
   // Initialize Sanity
-  initializeSanity(sanityProjectId);
+  initializeSanity(sanityProjectId, dataset);
 
   // Load experiments
   loadExperiments(experimentIds);
