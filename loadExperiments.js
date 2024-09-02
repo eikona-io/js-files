@@ -56,16 +56,17 @@ function loadExperiments(experimentIds) {
       if (expId.endsWith('-_')) {
         // For "everything" pattern
         expId = expId.slice(0, -2); // Remove '-_' suffix (can't do * in posthog experiment id)
-        elements = document.querySelectorAll(`[id^="${expId}"]`);
+        elements = document.querySelectorAll(`[id^="${expId}"], [alt^="${expId}"]`);
         expId = expId + "*";
       } else {
         // For exact match
-        const element = document.getElementById(expId);
-        elements = element ? [element] : [];
+        const elementById = document.getElementById(expId);
+        const elementByAlt = document.querySelector(`[alt="${expId}"]`);
+        elements = elementById ? [elementById] : (elementByAlt ? [elementByAlt] : []);
       }
 
       if (elements.length === 0) {
-        throw new Error(`No elements with ID ${expId} exist in the document`);
+        throw new Error(`No elements with ID or alt text ${expId} exist in the document`);
       }
 
       if (variant === 'control') {
@@ -78,9 +79,10 @@ function loadExperiments(experimentIds) {
             const assetId = asset.id;
             elements.forEach(element => {
               const elementId = element.id;
+              const elementAlt = element.alt;
               // check that we are changing the right element
-              // (the experiments in the CMS have the same ID as the elements)
-              if (assetId === elementId) {
+              // (the experiments in the CMS have the same ID or alt text as the elements)
+              if (assetId === elementId || assetId === elementAlt) {
                 const tagName = element.tagName.toLowerCase();
                 // change the element to the new image
                 // each element type has a different way to change the image
