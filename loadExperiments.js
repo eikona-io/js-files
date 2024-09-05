@@ -43,7 +43,9 @@ export function initializeAndLoadExperiments(posthogToken, sanityProjectId, expe
 
 function loadExperiments(experimentIds) {
   posthog.onFeatureFlags(function () {
-    experimentIds.forEach(expId => {
+    const notFoundExperiments = [];
+
+    function processExperiment(expId) {
       const variant = posthog.getFeatureFlag(expId);
       if (variant === undefined) {
         console.log(`Experiment with ID ${expId} does not exist`);
@@ -66,12 +68,14 @@ function loadExperiments(experimentIds) {
       }
 
       if (elements.length === 0) {
-        throw new Error(`No elements with ID or alt text ${expId} exist in the document`);
+        notFoundExperiments.push(expId);
+        return;
       }
 
       if (variant === 'control') {
         return;
       }
+
       fetchExperimentAsstes(expId).then(experimentsAssets => {
         for (const asset of experimentsAssets) {
           if (asset[variantKey]) {
@@ -115,6 +119,16 @@ function loadExperiments(experimentIds) {
           }
         }
       });
-    });
+    }
+
+    experimentIds.forEach(processExperiment);
+
+    // Retry not found experiments after a delay
+    setTimeout(() => {
+      notFoundExperiments.forEach(expId => {
+        console.log(`Retrying experiment with ID ${expId}`);
+        processExperiment(expId);
+      });
+    }, 500);
   });
 }
