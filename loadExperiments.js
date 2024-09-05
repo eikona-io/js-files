@@ -123,12 +123,28 @@ function loadExperiments(experimentIds) {
 
     experimentIds.forEach(processExperiment);
 
-    // Retry not found experiments after a delay
-    setTimeout(() => {
+    // Retry not found experiments until success
+    function retryNotFoundExperiments() {
+      const stillNotFound = [];
       notFoundExperiments.forEach(expId => {
         console.log(`Retrying experiment with ID ${expId}`);
-        processExperiment(expId);
+        const elements = document.querySelectorAll(`[id="${expId}"], [alt="${expId}"]`);
+        if (elements.length === 0) {
+          stillNotFound.push(expId);
+        } else {
+          processExperiment(expId);
+        }
       });
-    }, 500);
+      
+      if (stillNotFound.length > 0) {
+        notFoundExperiments.length = 0;
+        notFoundExperiments.push(...stillNotFound);
+        setTimeout(retryNotFoundExperiments, 100);
+      }
+    }
+
+    if (notFoundExperiments.length > 0) {
+      setTimeout(retryNotFoundExperiments, 500);
+    }
   });
 }
