@@ -93,14 +93,19 @@ function loadExperiments(experimentIds) {
                   } else if (tagName === 'div') {
                     element.style.cssText = `background: url('${imageUrl}'); background-repeat: no-repeat; background-position: center; background-size: cover;`;
                   } else if (tagName === 'video') {
-                    // for now replace the video with an image
-                    // TODO: omerh -> support replacing the video with the new video
+                    const parentElement = element.parentNode;
                     const img = document.createElement('img');
                     img.src = imageUrl;
-                    img.id = element.id;
-                    img.alt = element.alt || '';
-                    img.className = element.className;
-                    element.parentNode.replaceChild(img, element);
+                    img.id = parentElement.id;
+                    img.alt = parentElement.getAttribute('alt') || '';
+                    img.className = parentElement.className;
+                    if (parentElement.classList.contains('video-section')) {
+                      // Replace the video-section with an image
+                      parentElement.parentNode.replaceChild(img, parentElement);
+                    } else {
+                      // Replace just the video element with an image
+                      element.parentNode.replaceChild(img, element);
+                    }
                   }
                 } else {
                   console.warn(`Unsupported element type for ID ${element.id}: ${tagName}`);
