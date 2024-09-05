@@ -99,7 +99,7 @@ function loadExperiments(experimentIds) {
                     img.id = parentElement.id;
                     img.alt = parentElement.getAttribute('alt') || '';
                     img.className = parentElement.className;
-                    if (parentElement.classList.contains('video-section')) {
+                    if (parentElement.tagName.toLowerCase() === 'video-section') {
                       // Replace the video-section with an image
                       parentElement.parentNode.replaceChild(img, parentElement);
                     } else {
