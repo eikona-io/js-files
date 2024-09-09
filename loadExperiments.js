@@ -58,7 +58,8 @@ function loadExperiments(experimentIds) {
       if (expId.endsWith('-_')) {
         // For "everything" pattern
         expId = expId.slice(0, -2); // Remove '-_' suffix (can't do * in posthog experiment id)
-        elements = document.querySelectorAll(`[id^="${expId}"], [alt^="${expId}"]`);
+        // catch any element with the experiment id in any of the attributes
+        elements = document.querySelectorAll(`[*|*~="${expId}"]`);
         expId = expId + "*";
       } else {
         // For exact match
@@ -135,7 +136,7 @@ function loadExperiments(experimentIds) {
           processExperiment(expId);
         }
       });
-      
+
       if (stillNotFound.length > 0) {
         notFoundExperiments.length = 0;
         notFoundExperiments.push(...stillNotFound);
