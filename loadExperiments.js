@@ -59,7 +59,7 @@ function loadExperiments(experimentIds) {
         // For "everything" pattern
         expId = expId.slice(0, -2); // Remove '-_' suffix (can't do * in posthog experiment id)
         // catch any element with the experiment id in any of the attributes
-        elements = document.querySelectorAll(`[*|*~="${expId}"]`);
+        elements = document.querySelectorAll(`[id*="${expId}"], [alt*="${expId}"], [data-bg*="${expId}"], [style*="${expId}"]`);
         expId = expId + "*";
       } else {
         // For exact match
