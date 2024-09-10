@@ -26,8 +26,8 @@ function urlForImage(source) {
   return builder.image(source).auto('format').url()
 }
 
-async function fetchExperimentAsstes(experimentIdPrefix) {
-  return await client.fetch(`*[_type == "experiment" && id match $idPrefix]`, { idPrefix: experimentIdPrefix });
+async function fetchExperimentAsstes(experimentId) {
+  return await client.fetch(`*[_type == "experiment" && id match $id]`, { id: `*${experimentId}*` });
 }
 
 export function initializeAndLoadExperiments(posthogToken, sanityProjectId, experimentIds, dataset = 'production') {
@@ -39,6 +39,16 @@ export function initializeAndLoadExperiments(posthogToken, sanityProjectId, expe
 
   // Load experiments
   loadExperiments(experimentIds);
+}
+
+const getElementIdFromAttributes = (element, expId) => {
+  const attributes = element.attributes;
+  for (const attr of attributes) {
+    if (attr.value.includes(expId)) {
+      return attr.name;
+    }
+  }
+  return null;
 }
 
 function loadExperiments(experimentIds) {
@@ -55,20 +65,10 @@ function loadExperiments(experimentIds) {
       let elements;
       const variantLetter = variant.slice(-1);
       const variantKey = `variant_${variantLetter}`;
-      if (expId.endsWith('-_')) {
-        // For "everything" pattern
-        expId = expId.slice(0, -2); // Remove '-_' suffix (can't do * in posthog experiment id)
-        // catch any element with the experiment id in any of the attributes
-        elements = document.querySelectorAll(`[id*="${expId}"], [alt*="${expId}"], [data-bg*="${expId}"], [style*="${expId}"]`);
-        expId = expId + "*";
-      } else {
-        // For exact match
-        const elementById = document.getElementById(expId);
-        const elementByAlt = document.querySelector(`[alt="${expId}"]`);
-        elements = elementById ? [elementById] : (elementByAlt ? [elementByAlt] : []);
-      }
-
-      if (elements.length === 0) {
+      // catch any element with the experiment id in any of the attributes
+      elements = document.querySelectorAll(`[id*="${expId}"], [alt*="${expId}"], [data-bg*="${expId}"], [style*="${expId}"]`);
+      const nofElements = elements.length;
+      if (nofElements === 0) {
         notFoundExperiments.push(expId);
         return;
       }
@@ -78,16 +78,23 @@ function loadExperiments(experimentIds) {
       }
 
       fetchExperimentAsstes(expId).then(experimentsAssets => {
+        const nofAssets = experimentsAssets.length;
+        const isBroadcastExperiment = nofAssets === 1 && nofElements > 1;
+        const isMultiAssetExperiment = nofAssets > 1 && nofElements === nofAssets;
+        const isSingleAssetExperiment = nofAssets === 1 && nofElements === 1;
+        if (!isBroadcastExperiment && !isMultiAssetExperiment && !isSingleAssetExperiment) {
+          console.warn(`Experiment with ID ${expId} has ${nofAssets} assets but ${nofElements} elements`);
+          return;
+        }
         for (const asset of experimentsAssets) {
           if (asset[variantKey]) {
             const imageUrl = urlForImage(asset[variantKey]);
             const assetId = asset.id;
             elements.forEach(element => {
-              const elementId = element.id;
-              const elementAlt = element.alt;
+              const elementId = getElementIdFromAttributes(element, expId);
               // check that we are changing the right element
               // (the experiments in the CMS have the same ID or alt text as the elements)
-              if (assetId === elementId || assetId === elementAlt) {
+              if (isSingleAssetExperiment || isBroadcastExperiment || (isMultiAssetExperiment && assetId === elementId)) {
                 const tagName = element.tagName.toLowerCase();
                 // change the element to the new image
                 // each element type has a different way to change the image
