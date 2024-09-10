@@ -82,6 +82,9 @@ function loadExperiments(experimentIds) {
         const isBroadcastExperiment = nofAssets === 1 && nofElements > 1;
         const isMultiAssetExperiment = nofAssets > 1 && nofElements === nofAssets;
         const isSingleAssetExperiment = nofAssets === 1 && nofElements === 1;
+        console.log('isBroadcastExperiment', isBroadcastExperiment);
+        console.log('isMultiAssetExperiment', isMultiAssetExperiment);
+        console.log('isSingleAssetExperiment', isSingleAssetExperiment);
         if (!isBroadcastExperiment && !isMultiAssetExperiment && !isSingleAssetExperiment) {
           console.warn(`Experiment with ID ${expId} has ${nofAssets} assets but ${nofElements} elements`);
           return;
@@ -90,6 +93,7 @@ function loadExperiments(experimentIds) {
           if (asset[variantKey]) {
             const imageUrl = urlForImage(asset[variantKey]);
             const assetId = asset.id;
+            console.log('assetId', assetId);
             elements.forEach(element => {
               const elementId = getElementIdFromAttributes(element, expId);
               console.log('elementId', elementId);
