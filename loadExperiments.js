@@ -92,6 +92,7 @@ function loadExperiments(experimentIds) {
             const assetId = asset.id;
             elements.forEach(element => {
               const elementId = getElementIdFromAttributes(element, expId);
+              console.log('elementId', elementId);
               // check that we are changing the right element
               // (the experiments in the CMS have the same ID or alt text as the elements)
               if (isSingleAssetExperiment || isBroadcastExperiment || (isMultiAssetExperiment && assetId === elementId)) {
