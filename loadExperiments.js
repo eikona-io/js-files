@@ -57,7 +57,7 @@ const getElementIdFromAttributes = (element, expId) => {
 }
 
 const tiggerElementFade = (element) => {
-  element.style.transition = "opacity 0.3s ease-in-out";
+  element.style.transition = "opacity 1s ease-in-out";
   element.style.opacity = 0;
   element.offsetHeight; // force a reflow
   element.style.opacity = 1;
