@@ -111,7 +111,10 @@ function loadExperiments(experimentIds) {
                     element.src = imageUrl;
                     element.srcset = "";
                   } else if (tagName === 'div') {
-                    element.style.cssText = `background: url('${imageUrl}'); background-repeat: no-repeat; background-position: center; background-size: cover;`;
+                    element.style.backgroundImage = `url('${imageUrl}')`;
+                    element.style.backgroundRepeat = 'no-repeat';
+                    element.style.backgroundPosition = 'center';
+                    element.style.backgroundSize = 'cover';
                   } else if (tagName === 'video') {
                     const parentElement = element.parentNode;
                     const img = document.createElement('img');
