@@ -56,11 +56,14 @@ const getElementIdFromAttributes = (element, expId) => {
   return null;
 }
 
-const tiggerElementFade = (element) => {
-  element.style.transition = "opacity 3s ease-in-out";
-  element.style.opacity = 0;
-  element.offsetHeight; // force a reflow
-  element.style.opacity = 1;
+const hideElements = (elements) => {
+  elements.forEach(element => {
+    element.style.visibility = 'hidden';
+  });
+}
+
+const showElement = (element) => {
+  element.style.visibility = 'visible';
 }
 
 function loadExperiments(experimentIds) {
@@ -79,6 +82,7 @@ function loadExperiments(experimentIds) {
       const variantKey = `variant_${variantLetter}`;
       // catch any element with the experiment id in any of the attributes
       elements = document.querySelectorAll(`[id*="${expId}"], [alt*="${expId}"], [data-bg*="${expId}"], [style*="${expId}"], [class*="${expId}"]`);
+      hideElements(elements);
       logger('Found elements for experiment:', expId, elements);
       const nofElements = elements.length;
       if (nofElements === 0) {
@@ -122,7 +126,6 @@ function loadExperiments(experimentIds) {
                   if (tagName === 'img') {
                     element.src = imageUrl;
                     element.srcset = "";
-                    tiggerElementFade(element);
                   } else if (tagName === 'div') {
                     element.style.backgroundImage = `url('${imageUrl}')`;
                     element.style.backgroundRepeat = 'no-repeat';
@@ -130,7 +133,6 @@ function loadExperiments(experimentIds) {
                     element.style.backgroundSize = 'cover';
                     element.dataset.bg = "";
                     element.dataset.bgHidpi = "";
-                    tiggerElementFade(element);
                   } else if (tagName === 'video') {
                     const parentElement = element.parentNode;
                     const img = document.createElement('img');
@@ -138,7 +140,6 @@ function loadExperiments(experimentIds) {
                     img.id = parentElement.id;
                     img.alt = parentElement.getAttribute('alt') || '';
                     img.className = parentElement.className;
-                    tiggerElementFade(img);
                     if (parentElement.tagName.toLowerCase() === 'video-section') {
                       // Replace the video-section with an image
                       parentElement.parentNode.replaceChild(img, parentElement);
@@ -147,6 +148,7 @@ function loadExperiments(experimentIds) {
                       element.parentNode.replaceChild(img, element);
                     }
                   }
+                  showElement(element);
                   logger(`Updated ${tagName} element for experiment:`, expId);
                   logger(`Full element tag:`, element.outerHTML);
                 } else {
