@@ -27,7 +27,9 @@ function urlForImage(source) {
 }
 
 async function fetchExperimentAsstes(experimentId) {
-  return await client.fetch(`*[_type == "experiment" && id match $id]`, { id: `*${experimentId}*` });
+  const assets = await client.fetch(`*[_type == "experiment" && id match $id]`, { id: `*${experimentId}*` });
+  console.log('assets', assets);
+  return assets;
 }
 
 export function initializeAndLoadExperiments(posthogToken, sanityProjectId, experimentIds, dataset = 'production') {
