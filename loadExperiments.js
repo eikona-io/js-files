@@ -75,7 +75,7 @@ function loadExperiments(experimentIds) {
         notFoundExperiments.push(expId);
         return;
       }
-
+      console.log('variant', variant);
       if (variant === 'control') {
         return;
       }
