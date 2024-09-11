@@ -128,6 +128,8 @@ function loadExperiments(experimentIds) {
                     element.style.backgroundRepeat = 'no-repeat';
                     element.style.backgroundPosition = 'center';
                     element.style.backgroundSize = 'cover';
+                    element.dataset.bg = "";
+                    element.dataset.bgHipi = "";
                     tiggerElementFade(element);
                   } else if (tagName === 'video') {
                     const parentElement = element.parentNode;
