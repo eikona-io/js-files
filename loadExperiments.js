@@ -11,6 +11,7 @@ if (toolbarJSON) {
 // Initialize Sanity client and image builder
 let client;
 let builder;
+let logger;
 
 function initializeSanity(projectId, dataset, apiVersion = '2024-01-01') {
   client = createClient({
@@ -26,13 +27,15 @@ function urlForImage(source) {
   return builder.image(source).auto('format').url()
 }
 
-async function fetchExperimentAsstes(experimentId) {
+async function fetchExperimentAssets(experimentId) {
   const assets = await client.fetch(`*[_type == "experiment" && id match $id]`, { id: `*${experimentId}*` });
-  console.log('assets', assets);
+  logger('Fetched assets for experiment:', experimentId, assets);
   return assets;
 }
 
-export function initializeAndLoadExperiments(posthogToken, sanityProjectId, experimentIds, dataset = 'production') {
+export function initializeAndLoadExperiments(posthogToken, sanityProjectId, experimentIds, dataset = 'production', enableLogging = false) {
+  logger = enableLogging ? console.log.bind(console) : () => {};
+
   // Initialize PostHog
   posthog.init(posthogToken, { api_host: 'https://us.i.posthog.com', person_profiles: 'always', enable_heatmaps: true });
 
@@ -60,7 +63,7 @@ function loadExperiments(experimentIds) {
     function processExperiment(expId) {
       const variant = posthog.getFeatureFlag(expId);
       if (variant === undefined) {
-        console.log(`Experiment with ID ${expId} does not exist`);
+        logger(`Experiment not found: ${expId}`);
         return;
       }
 
@@ -69,37 +72,39 @@ function loadExperiments(experimentIds) {
       const variantKey = `variant_${variantLetter}`;
       // catch any element with the experiment id in any of the attributes
       elements = document.querySelectorAll(`[id*="${expId}"], [alt*="${expId}"], [data-bg*="${expId}"], [style*="${expId}"]`);
-      console.log('elements', elements);
+      logger('Found elements for experiment:', expId, elements);
       const nofElements = elements.length;
       if (nofElements === 0) {
         notFoundExperiments.push(expId);
         return;
       }
-      console.log('variant', variant);
+      logger('Experiment variant:', expId, variant);
       if (variant === 'control') {
         return;
       }
 
-      fetchExperimentAsstes(expId).then(experimentsAssets => {
+      fetchExperimentAssets(expId).then(experimentsAssets => {
         const nofAssets = experimentsAssets.length;
         const isBroadcastExperiment = nofAssets === 1 && nofElements > 1;
         const isMultiAssetExperiment = nofAssets > 1 && nofElements === nofAssets;
         const isSingleAssetExperiment = nofAssets === 1 && nofElements === 1;
-        console.log('isBroadcastExperiment', isBroadcastExperiment);
-        console.log('isMultiAssetExperiment', isMultiAssetExperiment);
-        console.log('isSingleAssetExperiment', isSingleAssetExperiment);
+        logger('Experiment type:', expId, {
+          isBroadcastExperiment,
+          isMultiAssetExperiment,
+          isSingleAssetExperiment
+        });
         if (!isBroadcastExperiment && !isMultiAssetExperiment && !isSingleAssetExperiment) {
-          console.warn(`Experiment with ID ${expId} has ${nofAssets} assets but ${nofElements} elements`);
+          console.warn(`Mismatch in experiment ${expId}: ${nofAssets} assets for ${nofElements} elements`);
           return;
         }
         for (const asset of experimentsAssets) {
           if (asset[variantKey]) {
             const imageUrl = urlForImage(asset[variantKey]);
             const assetId = asset.id;
-            console.log('assetId', assetId);
+            logger('Processing asset:', assetId, 'for experiment:', expId);
             elements.forEach(element => {
               const elementId = getElementIdFromAttributes(element, expId);
-              console.log('elementId', elementId);
+              logger('Processing element:', elementId, 'for experiment:', expId);
               // check that we are changing the right element
               // (the experiments in the CMS have the same ID or alt text as the elements)
               if (isSingleAssetExperiment || isBroadcastExperiment || (isMultiAssetExperiment && assetId === elementId)) {
@@ -130,8 +135,9 @@ function loadExperiments(experimentIds) {
                       element.parentNode.replaceChild(img, element);
                     }
                   }
+                  logger(`Updated ${tagName} element for experiment:`, expId);
                 } else {
-                  console.warn(`Unsupported element type for ID ${element.id}: ${tagName}`);
+                  console.warn(`Unsupported element type for experiment ${expId}: ${tagName}`);
                 }
               }
             });
@@ -146,7 +152,7 @@ function loadExperiments(experimentIds) {
     function retryNotFoundExperiments() {
       const stillNotFound = [];
       notFoundExperiments.forEach(expId => {
-        console.log(`Retrying experiment with ID ${expId}`);
+        logger(`Retrying experiment: ${expId}`);
         const elements = document.querySelectorAll(`[id="${expId}"], [alt="${expId}"]`);
         if (elements.length === 0) {
           stillNotFound.push(expId);
