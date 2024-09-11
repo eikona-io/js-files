@@ -71,7 +71,7 @@ function loadExperiments(experimentIds) {
       const variantLetter = variant.slice(-1);
       const variantKey = `variant_${variantLetter}`;
       // catch any element with the experiment id in any of the attributes
-      elements = document.querySelectorAll(`[id*="${expId}"], [alt*="${expId}"], [data-bg*="${expId}"], [style*="${expId}"]`);
+      elements = document.querySelectorAll(`[id*="${expId}"], [alt*="${expId}"], [data-bg*="${expId}"], [style*="${expId}"], [class*="${expId}"]`);
       logger('Found elements for experiment:', expId, elements);
       const nofElements = elements.length;
       if (nofElements === 0) {
