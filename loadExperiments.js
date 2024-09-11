@@ -146,6 +146,7 @@ function loadExperiments(experimentIds) {
                     }
                   }
                   logger(`Updated ${tagName} element for experiment:`, expId);
+                  logger(`Full element tag:`, element.outerHTML);
                 } else {
                   console.warn(`Unsupported element type for experiment ${expId}: ${tagName}`);
                 }
