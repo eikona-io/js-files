@@ -56,6 +56,13 @@ const getElementIdFromAttributes = (element, expId) => {
   return null;
 }
 
+const tiggerElementFade = (element) => {
+  element.style.transition = "opacity 0.3s ease-in-out";
+  element.style.opacity = 0;
+  element.offsetHeight; // force a reflow
+  element.style.opacity = 1;
+}
+
 function loadExperiments(experimentIds) {
   posthog.onFeatureFlags(function () {
     const notFoundExperiments = [];
@@ -115,11 +122,13 @@ function loadExperiments(experimentIds) {
                   if (tagName === 'img') {
                     element.src = imageUrl;
                     element.srcset = "";
+                    tiggerElementFade(element);
                   } else if (tagName === 'div') {
                     element.style.backgroundImage = `url('${imageUrl}')`;
                     element.style.backgroundRepeat = 'no-repeat';
                     element.style.backgroundPosition = 'center';
                     element.style.backgroundSize = 'cover';
+                    tiggerElementFade(element);
                   } else if (tagName === 'video') {
                     const parentElement = element.parentNode;
                     const img = document.createElement('img');
@@ -127,6 +136,7 @@ function loadExperiments(experimentIds) {
                     img.id = parentElement.id;
                     img.alt = parentElement.getAttribute('alt') || '';
                     img.className = parentElement.className;
+                    tiggerElementFade(img);
                     if (parentElement.tagName.toLowerCase() === 'video-section') {
                       // Replace the video-section with an image
                       parentElement.parentNode.replaceChild(img, parentElement);
