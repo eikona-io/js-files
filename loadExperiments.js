@@ -47,7 +47,7 @@ const getElementIdFromAttributes = (element, expId) => {
   const attributes = element.attributes;
   for (const attr of attributes) {
     if (attr.value.includes(expId)) {
-      return attr.name;
+      return attr.value;
     }
   }
   return null;
