@@ -23,7 +23,10 @@ function initializeSanity(projectId, dataset, apiVersion = '2024-01-01') {
   builder = imageUrlBuilder(client);
 }
 
-function urlForImage(source) {
+function urlForImage(source, shape = null) {
+  if (shape) {
+    return builder.image(source).auto('format').width(shape.width).height(shape.height).url()
+  }
   return builder.image(source).auto('format').url()
 }
 
@@ -33,7 +36,7 @@ async function fetchExperimentAssets(experimentId) {
   return assets;
 }
 
-export function initializeAndLoadExperiments(posthogToken, sanityProjectId, experimentIds, dataset = 'production', enableLogging = false) {
+export function initializeAndLoadExperiments(posthogToken, sanityProjectId, experimentIds, dataset = 'production', enableLogging = false, resizeElements = false) {
   logger = enableLogging ? console.log.bind(console) : () => {};
 
   // Initialize PostHog
@@ -43,7 +46,7 @@ export function initializeAndLoadExperiments(posthogToken, sanityProjectId, expe
   initializeSanity(sanityProjectId, dataset);
 
   // Load experiments
-  loadExperiments(experimentIds);
+  loadExperiments(experimentIds, resizeElements);
 }
 
 const getElementIdFromAttributes = (element, expId) => {
@@ -62,11 +65,19 @@ const hideElements = (elements) => {
   });
 }
 
+const getElementSizeOnScreen = (element) => {
+  const rect = element.getBoundingClientRect();
+  return {
+    width: rect.width,
+    height: rect.height,
+  };
+}
+
 const showElement = (element) => {
   element.style.visibility = 'visible';
 }
 
-function loadExperiments(experimentIds) {
+function loadExperiments(experimentIds, resizeElements) {
   posthog.onFeatureFlags(function () {
     const notFoundExperiments = [];
 
@@ -109,11 +120,12 @@ function loadExperiments(experimentIds) {
           return;
         }
         for (const asset of experimentsAssets) {
-          if (asset[variantKey]) {
-            const imageUrl = urlForImage(asset[variantKey]);
+          const variantAsset = asset[variantKey];
+          if (variantAsset) {
             const assetId = asset.id;
             logger('Processing asset:', assetId, 'for experiment:', expId);
             elements.forEach(element => {
+              const imageUrl = urlForImage(variantAsset, resizeElements ? getElementSizeOnScreen(element) : null);
               const elementId = getElementIdFromAttributes(element, expId);
               logger('Processing element:', elementId, 'for experiment:', expId);
               // check that we are changing the right element
