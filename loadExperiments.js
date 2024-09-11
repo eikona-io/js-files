@@ -129,7 +129,7 @@ function loadExperiments(experimentIds) {
                     element.style.backgroundPosition = 'center';
                     element.style.backgroundSize = 'cover';
                     element.dataset.bg = "";
-                    element.dataset.bgHipi = "";
+                    element.dataset.bgHidpi = "";
                     tiggerElementFade(element);
                   } else if (tagName === 'video') {
                     const parentElement = element.parentNode;
