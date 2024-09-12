@@ -61,9 +61,12 @@ const getElementIdFromAttributes = (element, expId) => {
 
 const hideElements = (elements) => {
   elements.forEach(element => {
-    // element.style.visibility = 'hidden';
-    element.style.opacity = '0';
-    element.style.transition = "opacity 0.5s ease-in-out"; // Changed from 10s to 0.5s
+    element.style.opacity = '1';
+    element.style.transition = "opacity 0.5s ease-out";
+    // Use setTimeout to trigger the fade-out effect
+    setTimeout(() => {
+      element.style.opacity = '0';
+    }, 10); // Small delay to ensure the transition is applied
   });
 }
 
