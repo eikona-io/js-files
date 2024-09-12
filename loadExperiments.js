@@ -80,10 +80,11 @@ const getElementSizeOnScreen = (element) => {
 
 const showElement = (element) => {
   element.style.visibility = 'visible';
+  element.style.transition = "opacity 0.5s ease-in";
   // Use setTimeout to trigger the fade-in effect
   setTimeout(() => {
     element.style.opacity = '1';
-  }, 1000); // Small delay to ensure the transition is applied
+  }, 1); // Small delay to ensure the transition is applied
 }
 
 function loadExperiments(experimentIds, resizeElements) {
