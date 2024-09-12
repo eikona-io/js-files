@@ -170,7 +170,7 @@ function loadExperiments(experimentIds, resizeElements) {
                       element.parentNode.replaceChild(img, element);
                     }
                   }
-                  showElement(element);
+                  // showElement(element);
                   logger(`Updated ${tagName} element for experiment:`, expId);
                   logger(`Full element tag:`, element.outerHTML);
                 } else {
