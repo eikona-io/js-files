@@ -80,7 +80,7 @@ const showElement = (element) => {
   // Use setTimeout to trigger the fade-in effect
   setTimeout(() => {
     element.style.opacity = '1';
-  }, 10); // Small delay to ensure the transition is applied
+  }, 1000); // Small delay to ensure the transition is applied
 }
 
 function loadExperiments(experimentIds, resizeElements) {
