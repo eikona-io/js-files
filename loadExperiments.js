@@ -76,7 +76,8 @@ const getElementSizeOnScreen = (element) => {
 }
 
 const showElement = (element) => {
-  // element.style.visibility = 'visible';
+  element.style.visibility = 'visible';
+  element.style.opacity = '0';
   // Use setTimeout to trigger the fade-in effect
   setTimeout(() => {
     element.style.opacity = '1';
