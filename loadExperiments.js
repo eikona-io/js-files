@@ -101,7 +101,6 @@ function loadExperiments(experimentIds, resizeElements) {
       const variantKey = `variant_${variantLetter}`;
       // catch any element with the experiment id in any of the attributes
       elements = document.querySelectorAll(`[id*="${expId}"], [alt*="${expId}"], [data-bg*="${expId}"], [style*="${expId}"], [class*="${expId}"]`);
-      hideElements(elements);
       logger('Found elements for experiment:', expId, elements);
       const nofElements = elements.length;
       if (nofElements === 0) {
@@ -112,6 +111,7 @@ function loadExperiments(experimentIds, resizeElements) {
       if (variant === 'control') {
         return;
       }
+      hideElements(elements);
 
       fetchExperimentAssets(expId).then(experimentsAssets => {
         const nofAssets = experimentsAssets.length;
