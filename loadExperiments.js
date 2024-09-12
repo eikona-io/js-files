@@ -80,7 +80,6 @@ const getElementSizeOnScreen = (element) => {
 
 const showElement = (element) => {
   element.style.visibility = 'visible';
-  element.style.opacity = '0';
   // Use setTimeout to trigger the fade-in effect
   setTimeout(() => {
     element.style.opacity = '1';
@@ -170,7 +169,7 @@ function loadExperiments(experimentIds, resizeElements) {
                       element.parentNode.replaceChild(img, element);
                     }
                   }
-                  // showElement(element);
+                  showElement(element);
                   logger(`Updated ${tagName} element for experiment:`, expId);
                   logger(`Full element tag:`, element.outerHTML);
                 } else {
