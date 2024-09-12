@@ -62,8 +62,8 @@ const getElementIdFromAttributes = (element, expId) => {
 const hideElements = (elements) => {
   elements.forEach(element => {
     element.style.visibility = 'hidden';
-    element.style.opacity = 0;
-    element.style.transition = "opacity 10s ease-in-out";
+    element.style.opacity = '0';
+    element.style.transition = "opacity 0.5s ease-in-out"; // Changed from 10s to 0.5s
   });
 }
 
@@ -77,7 +77,10 @@ const getElementSizeOnScreen = (element) => {
 
 const showElement = (element) => {
   element.style.visibility = 'visible';
-  element.style.opacity = 1;
+  // Use setTimeout to trigger the fade-in effect
+  setTimeout(() => {
+    element.style.opacity = '1';
+  }, 10); // Small delay to ensure the transition is applied
 }
 
 function loadExperiments(experimentIds, resizeElements) {
