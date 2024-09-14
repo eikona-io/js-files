@@ -125,7 +125,7 @@ function loadExperiments(experimentIds, resizeElements) {
           isSingleAssetExperiment,
           isMultiAssetBroadcastExperiment
         });
-        if (!isBroadcastExperiment && !isMultiAssetExperiment && !isSingleAssetExperiment) {
+        if (!isBroadcastExperiment && !isMultiAssetExperiment && !isSingleAssetExperiment && !isMultiAssetBroadcastExperiment) {
           console.warn(`Mismatch in experiment ${expId}: ${nofAssets} assets for ${nofElements} elements`);
           return;
         }
