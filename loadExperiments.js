@@ -37,7 +37,7 @@ async function fetchExperimentAssets(experimentId) {
 }
 
 export function initializeAndLoadExperiments(posthogToken, sanityProjectId, experimentIds, dataset = 'production', enableLogging = false, resizeElements = false) {
-  logger = enableLogging ? console.log.bind(console) : () => {};
+  logger = enableLogging ? console.log.bind(console) : () => { };
 
   // Initialize PostHog
   posthog.init(posthogToken, { api_host: 'https://us.i.posthog.com', person_profiles: 'always', enable_heatmaps: true });
@@ -117,11 +117,13 @@ function loadExperiments(experimentIds, resizeElements) {
         const nofAssets = experimentsAssets.length;
         const isBroadcastExperiment = nofAssets === 1 && nofElements > 1;
         const isMultiAssetExperiment = nofAssets > 1 && nofElements === nofAssets;
+        const isMultiAssetBroadcastExperiment = nofAssets > 1 && nofElements > nofAssets;
         const isSingleAssetExperiment = nofAssets === 1 && nofElements === 1;
         logger('Experiment type:', expId, {
           isBroadcastExperiment,
           isMultiAssetExperiment,
-          isSingleAssetExperiment
+          isSingleAssetExperiment,
+          isMultiAssetBroadcastExperiment
         });
         if (!isBroadcastExperiment && !isMultiAssetExperiment && !isSingleAssetExperiment) {
           console.warn(`Mismatch in experiment ${expId}: ${nofAssets} assets for ${nofElements} elements`);
@@ -138,7 +140,7 @@ function loadExperiments(experimentIds, resizeElements) {
               logger('Processing element:', elementId, 'for experiment:', expId);
               // check that we are changing the right element
               // (the experiments in the CMS have the same ID or alt text as the elements)
-              if (isSingleAssetExperiment || isBroadcastExperiment || (isMultiAssetExperiment && assetId === elementId)) {
+              if (isSingleAssetExperiment || isBroadcastExperiment || (isMultiAssetExperiment && assetId === elementId) || (isMultiAssetBroadcastExperiment && assetId === elementId)) {
                 const tagName = element.tagName.toLowerCase();
                 // change the element to the new image
                 // each element type has a different way to change the image
