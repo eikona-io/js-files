@@ -61,11 +61,7 @@ const getElementIdFromAttributes = (element, expId) => {
 
 const hideElements = (elements) => {
   elements.forEach(element => {
-    element.style.opacity = '1';
-    // element.style.transition = "opacity 0.05s ease-out";
-    setTimeout(() => {
-      element.style.opacity = '0';
-    }, 1); // Small delay to ensure the transition is applied
+    element.style.opacity = '0';
   });
 }
 
