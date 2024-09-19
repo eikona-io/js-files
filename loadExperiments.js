@@ -97,7 +97,7 @@ function loadExperiments(experimentIds, resizeElements) {
       const variantLetter = variant.slice(-1);
       const variantKey = `variant_${variantLetter}`;
       // catch any element with the experiment id in any of the attributes
-      elements = document.querySelectorAll(`[id*="${expId}"], [alt*="${expId}"], [data-bg*="${expId}"], [style*="${expId}"], [class*="${expId}"]`);
+      elements = document.querySelectorAll(`[id*="${expId}"], [alt*="${expId}"], [data-bg*="${expId}"], [style*="${expId}"], [class*="${expId}"], [src*="${expId}"]`);
       logger('Found elements for experiment:', expId, elements);
       const nofElements = elements.length;
       if (nofElements === 0) {
@@ -187,7 +187,7 @@ function loadExperiments(experimentIds, resizeElements) {
       const stillNotFound = [];
       notFoundExperiments.forEach(expId => {
         logger(`Retrying experiment: ${expId}`);
-        const elements = document.querySelectorAll(`[id="${expId}"], [alt="${expId}"]`);
+        const elements = document.querySelectorAll(`[id*="${expId}"], [alt*="${expId}"], [data-bg*="${expId}"], [style*="${expId}"], [class*="${expId}"], [src*="${expId}"]`);
         if (elements.length === 0) {
           stillNotFound.push(expId);
         } else {
