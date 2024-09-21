@@ -1,0 +1,41 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Test createBanner Function</title>
+    <style>
+        /* Optional styling for visualization */
+        #banner-container {
+            width: 300px;
+            height: 200px;
+            background-color: #e0e0e0;
+            background-image: url('https://cdn.sanity.io/images/wc2v7g08/testing/62b1c72dcc04dca067b88abc349e3d7ab910fcd4-1024x576.jpg');
+            background-size: cover;
+            margin: 50px auto;
+            position: relative;
+        }
+    </style>
+</head>
+<body>
+
+<div id="banner-container">
+    <!-- The banner will be applied to this div -->
+</div>
+
+<!-- Include your script file -->
+<script src="createBanner.js"></script>
+<script>
+    // Get the div element
+    const divElement = document.getElementById('banner-container');
+
+    // Call the createBanner function
+    createBanner(divElement, {
+        shape: 'right-diagonal', // Options: 'right-diagonal', 'left-diagonal', 'top-circle', 'bottom-circle'
+        text: 'Hello World',
+        textColor: '#ffffff',
+        shapeColor: 'rgba(0, 0, 255, 0.5)'
+    });
+</script>
+
+</body>
+</html>
