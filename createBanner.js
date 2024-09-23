@@ -21,7 +21,7 @@ function createBanner(divElement, options = {}) {
   shapeOverlay.style.left = '0';
   shapeOverlay.style.width = '100%';
   shapeOverlay.style.height = '100%';
-  shapeOverlay.style.backgroundColor = shapeColor;
+  shapeOverlay.style.backgroundColor = shape !== 'centered' ? shapeColor : 'transparent';
   shapeOverlay.style.display = 'flex';
   shapeOverlay.style.alignItems = 'center';
   shapeOverlay.style.justifyContent = 'center';
@@ -55,6 +55,10 @@ function createBanner(divElement, options = {}) {
     case 'right-rectangle':
       clipPath = 'polygon(65% 0%, 100% 0%, 100% 100%, 65% 100%)';
       textContainerStyle = { right: '0', width: '35%', height: '100%' };
+      break;
+    case 'centered':
+      clipPath = '';
+      textContainerStyle = { top: '50%', left: '50%', transform: 'translate(-50%, -50%)', width: '60%', height: '100%' };
       break;
     default:
       clipPath = '';
@@ -98,7 +102,7 @@ function createBanner(divElement, options = {}) {
     width: '98%',
     wordWrap: 'break-word',
     overflowWrap: 'break-word',
-    marginTop: '1rem'
+    marginTop: '2rem'
   });
 
   textContainer.appendChild(textElement);
