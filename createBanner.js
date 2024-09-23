@@ -48,6 +48,14 @@ function createBanner(divElement, options = {}) {
       clipPath = 'ellipse(55% 16.67% at 50% 98%)';
       textContainerStyle = { bottom: '0', left: '25%', width: '50%', height: '16.67%' };
       break;
+    case 'left-rectangle':
+      clipPath = 'polygon(0% 0%, 35% 0%, 35% 100%, 0% 100%)';
+      textContainerStyle = { left: '0', width: '35%', height: '100%' };
+      break;
+    case 'right-rectangle':
+      clipPath = 'polygon(65% 0%, 100% 0%, 100% 100%, 65% 100%)';
+      textContainerStyle = { right: '0', width: '35%', height: '100%' };
+      break;
     default:
       clipPath = '';
   }
