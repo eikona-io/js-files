@@ -91,6 +91,18 @@ const showElement = (element) => {
   }, 1); // Small delay to ensure the transition is applied
 }
 
+const addCopy = (div, asset) => {
+  createBanner(div, {
+    shape: asset.copyType,
+    text: asset.copyText,
+    subText: asset.copySubtext,
+    textColor: asset.copyTextColor,
+    shapeColor: asset.copyShapeColor,
+    textSize: asset.copyTextSize,
+    subTextSize: asset.copySubtextSize,
+  });
+}
+
 function loadExperiments(experimentIds, resizeElements) {
   posthog.onFeatureFlags(function () {
     const notFoundExperiments = [];
@@ -161,6 +173,9 @@ function loadExperiments(experimentIds, resizeElements) {
                     element.style.backgroundSize = 'cover';
                     element.dataset.bg = "";
                     element.dataset.bgHidpi = "";
+                    if (asset.copyType !== 'none') {
+                      addCopy(element, asset);
+                    }
                   } else if (tagName === 'video') {
                     const parentElement = element.parentNode;
                     const img = document.createElement('img');
@@ -298,7 +313,7 @@ export function createBanner(divElement, options = {}) {
     case 'aligned-left':
       clipPath = '';
       textContainerStyle = { top: '50%', left: '0%', transform: 'translate(5%, -50%)', width: '40%', height: '100%' };
-      break;  
+      break;
     case 'aligned-right':
       clipPath = '';
       textContainerStyle = { top: '50%', left: '100%', transform: 'translate(-105%, -50%)', width: '40%', height: '100%' };
