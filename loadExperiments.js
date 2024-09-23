@@ -278,7 +278,6 @@ export function createBanner(divElement, options = {}) {
   shapeOverlay.style.fontFamily = 'Gotham, sans-serif';
   shapeOverlay.style.fontWeight = 'bold';
 
-
   let clipPath;
   let textContainerStyle = {};
   switch (shape) {
@@ -345,7 +344,8 @@ export function createBanner(divElement, options = {}) {
     textAlign: shape === 'aligned-left' ? 'left' : shape === 'aligned-right' ? 'left' : 'center',
     width: '100%',
     wordWrap: 'break-word',
-    overflowWrap: 'break-word'
+    overflowWrap: 'break-word',
+    lineHeight: '1.2em', // Adjust line height relative to the font size
   });
 
   const subTextElement = document.createElement('div');
@@ -360,7 +360,7 @@ export function createBanner(divElement, options = {}) {
     width: '98%',
     wordWrap: 'break-word',
     overflowWrap: 'break-word',
-    marginTop: '2rem'
+    marginTop: '1rem' // Add margin to separate text and subtext
   });
 
   textContainer.appendChild(textElement);
