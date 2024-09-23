@@ -16,12 +16,13 @@ function createBanner(divElement, options = {}) {
   divElement.style.overflow = 'hidden';
 
   const shapeOverlay = document.createElement('div');
+  const requiresBackground = shape !== 'centered' && shape !== 'aligned-left' && shape !== 'aligned-right';
   shapeOverlay.style.position = 'absolute';
   shapeOverlay.style.top = '0';
   shapeOverlay.style.left = '0';
   shapeOverlay.style.width = '100%';
   shapeOverlay.style.height = '100%';
-  shapeOverlay.style.backgroundColor = shape !== 'centered' ? shapeColor : 'transparent';
+  shapeOverlay.style.backgroundColor = requiresBackground ? shapeColor : 'transparent';
   shapeOverlay.style.display = 'flex';
   shapeOverlay.style.alignItems = 'center';
   shapeOverlay.style.justifyContent = 'center';
@@ -60,6 +61,14 @@ function createBanner(divElement, options = {}) {
       clipPath = '';
       textContainerStyle = { top: '50%', left: '50%', transform: 'translate(-50%, -50%)', width: '60%', height: '100%' };
       break;
+    case 'aligned-left':
+      clipPath = '';
+      textContainerStyle = { top: '50%', left: '0%', transform: 'translate(5%, -50%)', width: '40%', height: '100%' };
+      break;  
+    case 'aligned-right':
+      clipPath = '';
+      textContainerStyle = { top: '50%', left: '100%', transform: 'translate(-105%, -50%)', width: '40%', height: '100%' };
+      break;
     default:
       clipPath = '';
   }
@@ -84,7 +93,7 @@ function createBanner(divElement, options = {}) {
     fontWeight: 'bold',
     textShadow: textShadow,
     pointerEvents: 'none',
-    textAlign: 'center',
+    textAlign: shape === 'aligned-left' ? 'left' : shape === 'aligned-right' ? 'left' : 'center',
     width: '100%',
     wordWrap: 'break-word',
     overflowWrap: 'break-word'
@@ -98,7 +107,7 @@ function createBanner(divElement, options = {}) {
     fontWeight: 'normal',
     textShadow: subTextShadow,
     pointerEvents: 'none',
-    textAlign: 'center',
+    textAlign: shape === 'aligned-left' ? 'left' : shape === 'aligned-right' ? 'left' : 'center',
     width: '98%',
     wordWrap: 'break-word',
     overflowWrap: 'break-word',
