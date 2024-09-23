@@ -338,7 +338,7 @@ export function createBanner(divElement, options = {}) {
   textElement.innerText = text;
   Object.assign(textElement.style, {
     color: textColor,
-    fontSize: '6vh',
+    fontSize: '2.5vh',
     fontWeight: 'bold',
     textShadow: textShadow,
     pointerEvents: 'none',
@@ -354,7 +354,7 @@ export function createBanner(divElement, options = {}) {
   subTextElement.innerText = subText;
   Object.assign(subTextElement.style, {
     color: subTextColor,
-    fontSize: '2.5vh',
+    fontSize: '1.5vh',
     fontWeight: 'normal',
     textShadow: subTextShadow,
     pointerEvents: 'none',
