@@ -33,12 +33,12 @@ function createBanner(divElement, options = {}) {
   let textContainerStyle = {};
   switch (shape) {
     case 'right-diagonal':
-      clipPath = `polygon(75% 0%, 100% 0%, 100% 100%,60% 100%)`;
+      clipPath = `polygon(75% 0%, 100% 0%, 100% 100%, 60% 100%)`;
       textContainerStyle = { right: '0', width: '30%', height: '100%' };
       break;
     case 'left-diagonal':
-      clipPath = `polygon(0% 0%, 66.67% 0%, 33.33% 100%, 0% 100%)`;
-      textContainerStyle = { left: '0', width: '33.33%', height: '100%' };
+      clipPath = `polygon(0% 0%, 25% 0%, 40% 100%, 0% 100%)`;
+      textContainerStyle = { left: '0', width: '30%', height: '100%' };
       break;
     case 'top-circle':
       clipPath = 'ellipse(50% 16.67% at 50% 0%)';
