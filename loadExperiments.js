@@ -360,7 +360,7 @@ export function createBanner(divElement, options = {}) {
     width: '98%',
     wordWrap: 'break-word',
     overflowWrap: 'break-word',
-    marginTop: '1rem' // Add margin to separate text and subtext
+    marginTop: '3rem' // Add margin to separate text and subtext
   });
 
   textContainer.appendChild(textElement);
