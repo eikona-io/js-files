@@ -23,14 +23,15 @@
 </div>
 
 <!-- Include your script file -->
-<script src="createBanner.js"></script>
-<script>
+<script type="module">
+    import { createBanner } from './loadExperiments.js';
+
     // Get the div element
     const divElement = document.getElementById('banner-container');
 
     // Call the createBanner function
     createBanner(divElement, {
-        shape: 'bottom-circle', // Options: 'right-diagonal', 'left-diagonal', 'top-circle', 'bottom-circle', 'left-rectangle', 'right-rectangle', 'centered', 'aligned-left', 'aligned-right'
+        shape: 'left-diagonal', // Options: 'right-diagonal', 'left-diagonal', 'top-circle', 'bottom-circle', 'left-rectangle', 'right-rectangle', 'centered', 'aligned-left', 'aligned-right'
         text: 'THIS IS THE MAIN COPY\n',
         subText: 'This is the subtext, and its quite a long one',
         textColor: '#ffffff',
