@@ -24,7 +24,7 @@ function initializeSanity(projectId, dataset, apiVersion = '2024-01-01') {
 }
 
 function urlForImage(source, shape = null) {
-  if (shape) {
+  if (shape && shape.width !== 0 && shape.height !== 0) {
     return builder.image(source).auto('format').width(shape.width).height(shape.height).url()
   }
   return builder.image(source).auto('format').url()
