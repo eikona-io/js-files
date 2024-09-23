@@ -256,8 +256,8 @@ export function createBanner(divElement, options = {}) {
     textColor = '#ffffff',
     subTextColor = '#ffffff',
     shapeColor = '#000000',
-    textSize = '60px',
-    subTextSize = '25px',
+    textSize = '2.5vh',
+    subTextSize = '1.5vh',
     textShadow = '-10px 10px 20px rgba(0, 0, 0, 0.7)',
     subTextShadow = '-5px 5px 10px rgba(0, 0, 0, 0.7)',
   } = options;
@@ -338,7 +338,7 @@ export function createBanner(divElement, options = {}) {
   textElement.innerText = text;
   Object.assign(textElement.style, {
     color: textColor,
-    fontSize: textSize,
+    fontSize: '6vh',
     fontWeight: 'bold',
     textShadow: textShadow,
     pointerEvents: 'none',
@@ -354,7 +354,7 @@ export function createBanner(divElement, options = {}) {
   subTextElement.innerText = subText;
   Object.assign(subTextElement.style, {
     color: subTextColor,
-    fontSize: subTextSize,
+    fontSize: '2.5vh',
     fontWeight: 'normal',
     textShadow: subTextShadow,
     pointerEvents: 'none',
