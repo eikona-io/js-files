@@ -347,7 +347,7 @@ export function createBanner(divElement, options = {}) {
     wordWrap: 'break-word',
     overflowWrap: 'break-word',
     lineHeight: textSize, // Adjust line height relative to the font size
-    marginBottom: '20px'
+    marginBottom: textSize * 0.9
   });
 
   const subTextElement = document.createElement('div');
@@ -363,7 +363,7 @@ export function createBanner(divElement, options = {}) {
     lineHeight: subTextSize,
     wordWrap: 'break-word',
     overflowWrap: 'break-word',
-    marginTop: '20px' // Add margin to separate text and subtext
+    marginTop: subTextSize
   });
 
   textContainer.appendChild(textElement);
