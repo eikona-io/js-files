@@ -100,7 +100,7 @@ const addCopy = (div, asset) => {
     textColor: asset.copyTextColor,
     shapeColor: asset.copyShapeColor,
     textSize: isMobile ? asset.copyTextSizeMobile : asset.copyTextSize,
-    subTextSize: isMobile ? asset.copySubTextSizeMobile : asset.copySubTextSize,
+    subTextSize: isMobile ? asset.copySubtextSizeMobile : asset.copySubtextSize,
   });
 }
 
