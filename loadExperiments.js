@@ -12,6 +12,7 @@ if (toolbarJSON) {
 let client;
 let builder;
 let logger;
+const isMobile = window.innerWidth <= 768;
 
 function initializeSanity(projectId, dataset, apiVersion = '2024-01-01') {
   client = createClient({
@@ -93,7 +94,7 @@ const showElement = (element) => {
 
 const addCopy = (div, asset) => {
   createBanner(div, {
-    shape: asset.copyType,
+    shape: isMobile ? asset.copyTypeMobile : asset.copyType,
     text: asset.copyText,
     subText: asset.copySubtext,
     textColor: asset.copyTextColor,
