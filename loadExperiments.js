@@ -342,7 +342,7 @@ export function createBanner(divElement, options = {}) {
     textShadow: textShadow,
     pointerEvents: 'none',
     textAlign: shape === 'aligned-left' ? 'left' : shape === 'aligned-right' ? 'left' : 'center',
-    width: '98%',
+    width: '99%',
     wordWrap: 'break-word',
     overflowWrap: 'break-word',
     lineHeight: '1.2em', // Adjust line height relative to the font size
@@ -357,7 +357,7 @@ export function createBanner(divElement, options = {}) {
     textShadow: subTextShadow,
     pointerEvents: 'none',
     textAlign: shape === 'aligned-left' ? 'left' : shape === 'aligned-right' ? 'left' : 'center',
-    width: '96%',
+    width: '92%',
     wordWrap: 'break-word',
     overflowWrap: 'break-word',
     marginTop: '3rem' // Add margin to separate text and subtext
