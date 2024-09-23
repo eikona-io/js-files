@@ -41,11 +41,11 @@ function createBanner(divElement, options = {}) {
       textContainerStyle = { left: '0', width: '30%', height: '100%' };
       break;
     case 'top-circle':
-      clipPath = 'ellipse(50% 16.67% at 50% 0%)';
+      clipPath = 'ellipse(55% 16.67% at 50% 2%)';
       textContainerStyle = { top: '0', left: '25%', width: '50%', height: '16.67%' };
       break;
     case 'bottom-circle':
-      clipPath = 'ellipse(50% 16.67% at 50% 100%)';
+      clipPath = 'ellipse(55% 16.67% at 50% 98%)';
       textContainerStyle = { bottom: '0', left: '25%', width: '50%', height: '16.67%' };
       break;
     default:
@@ -87,7 +87,7 @@ function createBanner(divElement, options = {}) {
     textShadow: subTextShadow,
     pointerEvents: 'none',
     textAlign: 'center',
-    width: '100%',
+    width: '98%',
     wordWrap: 'break-word',
     overflowWrap: 'break-word',
     marginTop: '1rem'
