@@ -99,8 +99,8 @@ const addCopy = (div, asset) => {
     subText: asset.copySubtext,
     textColor: asset.copyTextColor,
     shapeColor: asset.copyShapeColor,
-    textSize: '60px',
-    subTextSize: '25px',
+    textSize: isMobile ? asset.textSizeMobile : asset.textSize,
+    subTextSize: isMobile ? asset.subTextSizeMobile : asset.subTextSize,
   });
 }
 
@@ -338,7 +338,7 @@ export function createBanner(divElement, options = {}) {
   textElement.innerText = text;
   Object.assign(textElement.style, {
     color: textColor,
-    fontSize: '2.5vh',
+    fontSize: textSize,
     fontWeight: 'bold',
     textShadow: textShadow,
     pointerEvents: 'none',
@@ -346,7 +346,7 @@ export function createBanner(divElement, options = {}) {
     width: '99%',
     wordWrap: 'break-word',
     overflowWrap: 'break-word',
-    lineHeight: '1em', // Adjust line height relative to the font size
+    lineHeight: textSize, // Adjust line height relative to the font size
     marginBottom: '20px'
   });
 
@@ -354,12 +354,13 @@ export function createBanner(divElement, options = {}) {
   subTextElement.innerText = subText;
   Object.assign(subTextElement.style, {
     color: subTextColor,
-    fontSize: '1.5vh',
+    fontSize: subTextSize,
     fontWeight: 'normal',
     textShadow: subTextShadow,
     pointerEvents: 'none',
     textAlign: shape === 'aligned-left' ? 'left' : shape === 'aligned-right' ? 'left' : 'center',
     width: '92%',
+    lineHeight: subTextSize,
     wordWrap: 'break-word',
     overflowWrap: 'break-word',
     marginTop: '20px' // Add margin to separate text and subtext
