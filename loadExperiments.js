@@ -292,11 +292,11 @@ export function createBanner(divElement, options = {}) {
       break;
     case 'top-circle':
       clipPath = 'ellipse(55% 16.67% at 50% 5%)';
-      textContainerStyle = { top: '0', left: '15%', width: '70%', height: '16.67%' };
+      textContainerStyle = { top: '1%', left: '15%', width: '70%', height: '18%' };
       break;
     case 'bottom-circle':
-      clipPath = 'ellipse(55% 16.67% at 50% 95%)';
-      textContainerStyle = { bottom: '0', left: '15%', width: '70%', height: '16.67%' };
+      clipPath = 'ellipse(55% 16.67% at 50% 92%)';
+      textContainerStyle = { bottom: '4%', left: '15%', width: '70%', height: '18%' };
       break;
     case 'left-rectangle':
       clipPath = 'polygon(0% 0%, 35% 0%, 35% 100%, 0% 100%)';
