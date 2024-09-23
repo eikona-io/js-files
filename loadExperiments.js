@@ -99,8 +99,8 @@ const addCopy = (div, asset) => {
     subText: asset.copySubtext,
     textColor: asset.copyTextColor,
     shapeColor: asset.copyShapeColor,
-    textSize: asset.copyTextSize,
-    subTextSize: asset.copySubtextSize,
+    textSize: '60px',
+    subTextSize: '25px',
   });
 }
 
@@ -256,8 +256,8 @@ export function createBanner(divElement, options = {}) {
     textColor = '#ffffff',
     subTextColor = '#ffffff',
     shapeColor = '#000000',
-    textSize = '4.5rem',
-    subTextSize = '2rem',
+    textSize = '60px',
+    subTextSize = '25px',
     textShadow = '-10px 10px 20px rgba(0, 0, 0, 0.7)',
     subTextShadow = '-5px 5px 10px rgba(0, 0, 0, 0.7)',
   } = options;
@@ -291,12 +291,12 @@ export function createBanner(divElement, options = {}) {
       textContainerStyle = { left: '0', width: '30%', height: '100%' };
       break;
     case 'top-circle':
-      clipPath = 'ellipse(55% 16.67% at 50% 2%)';
-      textContainerStyle = { top: '0', left: '25%', width: '50%', height: '16.67%' };
+      clipPath = 'ellipse(55% 16.67% at 50% 5%)';
+      textContainerStyle = { top: '0', left: '15%', width: '70%', height: '16.67%' };
       break;
     case 'bottom-circle':
-      clipPath = 'ellipse(55% 16.67% at 50% 98%)';
-      textContainerStyle = { bottom: '0', left: '25%', width: '50%', height: '16.67%' };
+      clipPath = 'ellipse(55% 16.67% at 50% 95%)';
+      textContainerStyle = { bottom: '0', left: '15%', width: '70%', height: '16.67%' };
       break;
     case 'left-rectangle':
       clipPath = 'polygon(0% 0%, 35% 0%, 35% 100%, 0% 100%)';
@@ -338,7 +338,7 @@ export function createBanner(divElement, options = {}) {
   textElement.innerText = text;
   Object.assign(textElement.style, {
     color: textColor,
-    fontSize: `${textSize} !important`, // Add !important to override other CSS rules
+    fontSize: textSize,
     fontWeight: 'bold',
     textShadow: textShadow,
     pointerEvents: 'none',
@@ -346,14 +346,15 @@ export function createBanner(divElement, options = {}) {
     width: '99%',
     wordWrap: 'break-word',
     overflowWrap: 'break-word',
-    lineHeight: '1.2em', // Adjust line height relative to the font size
+    lineHeight: '1em', // Adjust line height relative to the font size
+    marginBottom: '20px'
   });
 
   const subTextElement = document.createElement('div');
   subTextElement.innerText = subText;
   Object.assign(subTextElement.style, {
     color: subTextColor,
-    fontSize: `${subTextSize} !important`, // Add !important to override other CSS rules
+    fontSize: subTextSize,
     fontWeight: 'normal',
     textShadow: subTextShadow,
     pointerEvents: 'none',
@@ -361,7 +362,7 @@ export function createBanner(divElement, options = {}) {
     width: '92%',
     wordWrap: 'break-word',
     overflowWrap: 'break-word',
-    marginTop: '3rem' // Add margin to separate text and subtext
+    marginTop: '20px' // Add margin to separate text and subtext
   });
 
   textContainer.appendChild(textElement);
