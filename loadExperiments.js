@@ -41,12 +41,12 @@ async function fetchExperimentAssets(experimentId) {
  * Initialize and load experiments
  * @param {string} posthogToken - The PostHog token
  * @param {string} sanityProjectId - The Sanity project ID
- * @param {string[]} experimentIds - The experiment IDs
+ * @param {string[]} experimentIdsAndXPaths - The experiment IDs
  * @param {string} dataset - The Sanity dataset
  * @param {boolean} enableLogging - Whether to enable logging
  * @param {boolean} resizeElements - Whether to resize elements according to their size on screen
  */
-export function initializeAndLoadExperiments(posthogToken, sanityProjectId, experimentIds, dataset = 'production', enableLogging = false, resizeElements = false) {
+export function initializeAndLoadExperiments(posthogToken, sanityProjectId, experimentIdsAndXPaths, dataset = 'production', enableLogging = false, resizeElements = false) {
   logger = enableLogging ? console.log.bind(console) : () => { };
 
   // Initialize PostHog
@@ -56,7 +56,7 @@ export function initializeAndLoadExperiments(posthogToken, sanityProjectId, expe
   initializeSanity(sanityProjectId, dataset);
 
   // Load experiments
-  loadExperiments(experimentIds, resizeElements);
+  loadExperiments(experimentIdsAndXPaths, resizeElements);
 }
 
 const getElementIdFromAttributes = (element, expId) => {
@@ -104,11 +104,12 @@ const addCopy = (div, asset) => {
   });
 }
 
-function loadExperiments(experimentIds, resizeElements) {
+function loadExperiments(experimentIdsAndXPaths, resizeElements) {
   posthog.onFeatureFlags(function () {
     const notFoundExperiments = [];
 
-    function processExperiment(expId) {
+    function processExperiment(expIdAndXPaths) {
+      const { expId, xPaths } = expIdAndXPaths;
       const variant = posthog.getFeatureFlag(expId);
       if (variant === undefined) {
         logger(`Experiment not found: ${expId}`);
@@ -118,8 +119,14 @@ function loadExperiments(experimentIds, resizeElements) {
       let elements;
       const variantLetter = variant.slice(-1);
       const variantKey = `variant_${variantLetter}`;
-      // catch any element with the experiment id in any of the attributes
-      elements = document.querySelectorAll(`[id*="${expId}"], [alt*="${expId}"], [data-bg*="${expId}"], [style*="${expId}"], [class*="${expId}"], [src*="${expId}"]`);
+      // find all elements that match any of the xpaths
+      elements = xPaths.reduce((acc, xpath) => {
+        const result = document.evaluate(xpath, document, null, XPathResult.ORDERED_NODE_SNAPSHOT_TYPE, null);
+        for (let i = 0; i < result.snapshotLength; i++) {
+          acc.push(result.snapshotItem(i));
+        }
+        return acc;
+      }, []);
       logger('Found elements for experiment:', expId, elements);
       const nofElements = elements.length;
       if (nofElements === 0) {
@@ -205,7 +212,7 @@ function loadExperiments(experimentIds, resizeElements) {
       });
     }
 
-    experimentIds.forEach(processExperiment);
+    experimentIdsAndXPaths.forEach(processExperiment);
 
     // Retry not found experiments until success
     function retryNotFoundExperiments() {
