@@ -119,17 +119,15 @@ function loadExperiments(experimentIdsAndXPaths, resizeElements) {
         return;
       }
 
-      let elements;
+      let elements = [];
       const variantLetter = variant.slice(-1);
       const variantKey = `variant_${variantLetter}`;
-      // find all elements that match any of the xpaths
-      elements = xPaths.reduce((acc, xpath) => {
-        const result = document.evaluate(xpath, document, null, XPathResult.ORDERED_NODE_SNAPSHOT_TYPE, null);
-        for (let i = 0; i < result.snapshotLength; i++) {
-          acc.push(result.snapshotItem(i));
-        }
-        return acc;
-      }, []);
+      
+      xPaths.forEach(xpath => {
+        const matchingElements = evaluateXPathWithFallback(xpath);
+        elements = elements.concat(matchingElements);
+      });
+
       logger('Found elements for experiment:', expId, elements);
       const nofElements = elements.length;
       if (nofElements === 0) {
@@ -243,6 +241,47 @@ function loadExperiments(experimentIdsAndXPaths, resizeElements) {
   });
 }
 
+// New function to evaluate XPath with fallback
+function evaluateXPathWithFallback(xpath) {
+  try {
+    const result = document.evaluate(xpath, document, null, XPathResult.ORDERED_NODE_SNAPSHOT_TYPE, null);
+    const elements = [];
+    for (let i = 0; i < result.snapshotLength; i++) {
+      elements.push(result.snapshotItem(i));
+    }
+    return elements;
+  } catch (error) {
+    logger(`XPath evaluation failed, falling back to manual evaluation for: ${xpath}`);
+    return evaluateXPathManually(xpath);
+  }
+}
+
+function evaluateXPathManually(xpath) {
+  const parts = xpath.split('/');
+  let currentElements = [document.documentElement];
+  
+  for (let i = 1; i < parts.length; i++) {
+    const part = parts[i];
+    if (part === '') continue;
+    
+    const newElements = [];
+    for (const element of currentElements) {
+      if (part === '*') {
+        newElements.push(...element.children);
+      } else if (part.includes('[')) {
+        const [tagName, index] = part.split('[');
+        const children = Array.from(element.children).filter(child => child.tagName.toLowerCase() === tagName.toLowerCase());
+        const idx = parseInt(index) - 1;
+        if (children[idx]) newElements.push(children[idx]);
+      } else {
+        newElements.push(...Array.from(element.children).filter(child => child.tagName.toLowerCase() === part.toLowerCase()));
+      }
+    }
+    currentElements = newElements;
+  }
+  
+  return currentElements;
+}
 
 /**
  * Create a banner with the given shape and text
