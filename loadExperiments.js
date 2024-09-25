@@ -244,7 +244,9 @@ function loadExperiments(experimentIdsAndXPaths, resizeElements) {
 // New function to evaluate XPath with fallback
 function evaluateXPathWithFallback(xpath) {
   try {
+    logger('Evaluating XPath:', xpath);
     const result = document.evaluate(xpath, document, null, XPathResult.ORDERED_NODE_SNAPSHOT_TYPE, null);
+    logger('XPath evaluation result:', result);
     const elements = [];
     for (let i = 0; i < result.snapshotLength; i++) {
       elements.push(result.snapshotItem(i));
