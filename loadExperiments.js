@@ -109,7 +109,10 @@ function loadExperiments(experimentIdsAndXPaths, resizeElements) {
     const notFoundExperiments = [];
 
     function processExperiment(expIdAndXPaths) {
-      const { expId, xPaths } = expIdAndXPaths;
+      const {
+        expId = '',
+        xPaths = []
+      } = expIdAndXPaths;
       const variant = posthog.getFeatureFlag(expId);
       if (variant === undefined) {
         logger(`Experiment not found: ${expId}`);
