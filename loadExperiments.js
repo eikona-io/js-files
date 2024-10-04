@@ -78,10 +78,15 @@ const hideElements = (elements) => {
 
 const getElementSizeOnScreen = (element) => {
   const rect = element.getBoundingClientRect();
-  return {
-    width: Math.round(rect.width),
-    height: Math.round(rect.height),
-  };
+  let width = Math.round(rect.width);
+  let height = Math.round(rect.height);
+
+  if (width === 0 || height === 0) {
+    width = Math.round(element.offsetWidth);
+    height = Math.round(element.offsetHeight);
+  }
+
+  return { width, height };
 }
 
 const showElement = (element) => {
