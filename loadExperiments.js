@@ -49,17 +49,6 @@ async function fetchExperimentAssets(experimentId) {
 export function initializeAndLoadExperiments(posthogToken, sanityProjectId, experimentIdsAndXPaths, dataset = 'production', enableLogging = false, resizeElements = false) {
   logger = enableLogging ? console.log.bind(console) : () => { };
 
-  // Create a blocking overlay
-  const overlay = document.createElement('div');
-  overlay.style.position = 'fixed';
-  overlay.style.top = '0';
-  overlay.style.left = '0';
-  overlay.style.width = '100%';
-  overlay.style.height = '100%';
-  overlay.style.backgroundColor = 'white';
-  overlay.style.zIndex = '9999';
-  document.body.appendChild(overlay);
-
   // Initialize PostHog
   posthog.init(posthogToken, { api_host: 'https://us.i.posthog.com', person_profiles: 'always', enable_heatmaps: true });
 
@@ -67,10 +56,7 @@ export function initializeAndLoadExperiments(posthogToken, sanityProjectId, expe
   initializeSanity(sanityProjectId, dataset);
 
   // Load experiments
-  loadExperiments(experimentIdsAndXPaths, resizeElements).then(() => {
-    // Remove the blocking overlay when experiments are loaded
-    document.body.removeChild(overlay);
-  });
+  loadExperiments(experimentIdsAndXPaths, resizeElements);
 }
 
 const getElementIdFromAttributes = (element, expId) => {
@@ -123,44 +109,43 @@ const addCopy = (div, asset) => {
   });
 }
 
-async function loadExperiments(experimentIdsAndXPaths, resizeElements) {
-  return new Promise((resolve) => {
-    posthog.onFeatureFlags(async function () {
-      const notFoundExperiments = [];
+function loadExperiments(experimentIdsAndXPaths, resizeElements) {
+  posthog.onFeatureFlags(function () {
+    const notFoundExperiments = [];
 
-      async function processExperiment(expIdAndXPaths) {
-        const {
-          expId = '',
-          xPaths = []
-        } = expIdAndXPaths;
-        const variant = posthog.getFeatureFlag(expId);
-        if (variant === undefined) {
-          logger(`Experiment not found: ${expId}`);
-          return;
-        }
+    function processExperiment(expIdAndXPaths) {
+      const {
+        expId = '',
+        xPaths = []
+      } = expIdAndXPaths;
+      const variant = posthog.getFeatureFlag(expId);
+      if (variant === undefined) {
+        logger(`Experiment not found: ${expId}`);
+        return;
+      }
 
-        let elements = [];
-        const variantLetter = variant.slice(-1);
-        const variantKey = `variant_${variantLetter}`;
-        
-        xPaths.forEach(xpath => {
-          const matchingElements = evaluateXPathWithFallback(xpath);
-          elements = elements.concat(matchingElements);
-        });
+      let elements = [];
+      const variantLetter = variant.slice(-1);
+      const variantKey = `variant_${variantLetter}`;
+      
+      xPaths.forEach(xpath => {
+        const matchingElements = evaluateXPathWithFallback(xpath);
+        elements = elements.concat(matchingElements);
+      });
 
-        logger('Found elements for experiment:', expId, elements);
-        const nofElements = elements.length;
-        if (nofElements === 0) {
-          notFoundExperiments.push(expId);
-          return;
-        }
-        logger('Experiment variant:', expId, variant);
-        if (variant === 'control') {
-          return;
-        }
-        hideElements(elements);
+      logger('Found elements for experiment:', expId, elements);
+      const nofElements = elements.length;
+      if (nofElements === 0) {
+        notFoundExperiments.push(expId);
+        return;
+      }
+      logger('Experiment variant:', expId, variant);
+      if (variant === 'control') {
+        return;
+      }
+      hideElements(elements);
 
-        const experimentsAssets = await fetchExperimentAssets(expId);
+      fetchExperimentAssets(expId).then(experimentsAssets => {
         const nofAssets = experimentsAssets.length;
         const isBroadcastExperiment = nofAssets === 1 && nofElements > 1;
         const isMultiAssetExperiment = nofAssets > 1 && nofElements === nofAssets;
@@ -230,40 +215,34 @@ async function loadExperiments(experimentIdsAndXPaths, resizeElements) {
             });
           }
         }
-      }
+      });
+    }
 
-      for (const expIdAndXPaths of experimentIdsAndXPaths) {
-        await processExperiment(expIdAndXPaths);
-      }
+    experimentIdsAndXPaths.forEach(processExperiment);
 
-      // Retry not found experiments until success
-      async function retryNotFoundExperiments() {
-        const stillNotFound = [];
-        for (const expId of notFoundExperiments) {
-          logger(`Retrying experiment: ${expId}`);
-          const elements = document.querySelectorAll(`[id*="${expId}"], [alt*="${expId}"], [data-bg*="${expId}"], [style*="${expId}"], [class*="${expId}"], [src*="${expId}"]`);
-          if (elements.length === 0) {
-            stillNotFound.push(expId);
-          } else {
-            await processExperiment({ expId, xPaths: [] });
-          }
-        }
-
-        if (stillNotFound.length > 0) {
-          notFoundExperiments.length = 0;
-          notFoundExperiments.push(...stillNotFound);
-          setTimeout(retryNotFoundExperiments, 100);
+    // Retry not found experiments until success
+    function retryNotFoundExperiments() {
+      const stillNotFound = [];
+      notFoundExperiments.forEach(expId => {
+        logger(`Retrying experiment: ${expId}`);
+        const elements = document.querySelectorAll(`[id*="${expId}"], [alt*="${expId}"], [data-bg*="${expId}"], [style*="${expId}"], [class*="${expId}"], [src*="${expId}"]`);
+        if (elements.length === 0) {
+          stillNotFound.push(expId);
         } else {
-          resolve();
+          processExperiment(expId);
         }
-      }
+      });
 
-      if (notFoundExperiments.length > 0) {
-        setTimeout(retryNotFoundExperiments, 500);
-      } else {
-        resolve();
+      if (stillNotFound.length > 0) {
+        notFoundExperiments.length = 0;
+        notFoundExperiments.push(...stillNotFound);
+        setTimeout(retryNotFoundExperiments, 100);
       }
-    });
+    }
+
+    if (notFoundExperiments.length > 0) {
+      setTimeout(retryNotFoundExperiments, 500);
+    }
   });
 }
 
