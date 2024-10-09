@@ -63,7 +63,11 @@ function blockPaths(pathsToBlock, enableLogging = false) {
   // Initial check and block
   if (isPathBlocked()) {
     log('Initial check: page is blocked');
-    blockPage();
+    if (document.readyState === 'loading') {
+        document.addEventListener('DOMContentLoaded', blockPage);
+    } else {
+        blockPage();
+    }
   } else {
     log('Initial check: page is not blocked');
   }
