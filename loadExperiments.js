@@ -41,12 +41,12 @@ async function fetchExperimentAssets(experimentId) {
  * Initialize and load experiments
  * @param {string} posthogToken - The PostHog token
  * @param {string} sanityProjectId - The Sanity project ID
- * @param {string[]} experimentIdsAndXPaths - The experiment IDs
+ * @param {string[]} experimentConfigs - The experiment configurations
  * @param {string} dataset - The Sanity dataset
  * @param {boolean} enableLogging - Whether to enable logging
  * @param {boolean} resizeElements - Whether to resize elements according to their size on screen
  */
-export function initializeAndLoadExperiments(posthogToken, sanityProjectId, experimentIdsAndXPaths, dataset = 'production', enableLogging = false, resizeElements = false) {
+export function initializeAndLoadExperiments(posthogToken, sanityProjectId, experimentConfigs, dataset = 'production', enableLogging = false, resizeElements = false) {
   logger = enableLogging ? console.log.bind(console) : () => { };
 
   // Initialize PostHog
@@ -56,7 +56,7 @@ export function initializeAndLoadExperiments(posthogToken, sanityProjectId, expe
   initializeSanity(sanityProjectId, dataset);
 
   // Load experiments
-  loadExperiments(experimentIdsAndXPaths, resizeElements);
+  loadExperiments(experimentConfigs, resizeElements);
 }
 
 const getElementIdFromAttributes = (element, expId) => {
@@ -109,15 +109,23 @@ const addCopy = (div, asset) => {
   });
 }
 
-function loadExperiments(experimentIdsAndXPaths, resizeElements) {
+function loadExperiments(experimentConfigs, resizeElements) {
   posthog.onFeatureFlags(function () {
     const notFoundExperiments = [];
 
-    function processExperiment(expIdAndXPaths) {
+    function processExperiment(experimentConfig) {
       const {
         expId = '',
-        xPaths = []
-      } = expIdAndXPaths;
+        xPaths = [],
+        site_path = ''
+      } = experimentConfig;
+
+      // Check if the current path matches the experiment's site_path
+      if (site_path && window.location.pathname !== site_path) {
+        logger(`Experiment ${expId} skipped: current path does not match ${site_path}`);
+        return;
+      }
+
       const variant = posthog.getFeatureFlag(expId);
       if (variant === undefined) {
         logger(`Experiment not found: ${expId}`);
@@ -218,7 +226,7 @@ function loadExperiments(experimentIdsAndXPaths, resizeElements) {
       });
     }
 
-    experimentIdsAndXPaths.forEach(processExperiment);
+    experimentConfigs.forEach(processExperiment);
 
     // Retry not found experiments until success
     function retryNotFoundExperiments() {
