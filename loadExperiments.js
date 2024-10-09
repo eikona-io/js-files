@@ -314,9 +314,8 @@ async function loadExperiments(experimentConfigs, resizeElements) {
   } finally {
     if (notFoundExperiments.length > 0) {
       setTimeout(retryNotFoundExperiments, 500);
-    } else if (totalExperiments === 0) {
-      unblockPage();
     }
+    unblockPage();
   }
 
   // Retry not found experiments until success
