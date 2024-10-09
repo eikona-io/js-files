@@ -116,6 +116,7 @@ function loadExperiments(experimentConfigs, resizeElements) {
     const currentPath = window.location.pathname;
     const relevantExperiments = experimentConfigs.filter(config => config.site_path === currentPath);
     const totalExperiments = relevantExperiments.length;
+    logger('Total experiments for page:', totalExperiments);
 
     function checkAllExperimentsLoaded() {
       if (loadedExperiments === totalExperiments) {
