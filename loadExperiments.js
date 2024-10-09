@@ -170,8 +170,13 @@ async function loadExperiments(experimentConfigs, resizeElements) {
   let notFoundExperiments = [];
   logger('Total experiments for page:', totalExperiments);
 
+  // function checkAllExperimentsLoadedAndUnblockPage() {
+  //   if (loadedExperiments === totalExperiments) {
+  //     unblockPage();
+  //   }
+  // }
 
-  function processExperiment(experimentConfig) {
+  async function processExperiment(experimentConfig) {
     const {
       expId = '',
       xPaths = [],
@@ -189,7 +194,7 @@ async function loadExperiments(experimentConfigs, resizeElements) {
     if (variant === undefined) {
       logger(`Experiment not found: ${expId}`);
       loadedExperiments++;
-      checkAllExperimentsLoaded();
+      checkAllExperimentsLoadedAndUnblockPage();
       return;
     }
     const variantLetter = variant.slice(-1);
@@ -210,7 +215,7 @@ async function loadExperiments(experimentConfigs, resizeElements) {
     logger('Experiment variant:', expId, variant);
     if (variant === 'control') {
       loadedExperiments++;
-      checkAllExperimentsLoaded();
+      checkAllExperimentsLoadedAndUnblockPage();
       return;
     }
     hideElements(elements);
@@ -220,7 +225,7 @@ async function loadExperiments(experimentConfigs, resizeElements) {
     if (!experimentAssets) {
       logger(`No assets found for experiment ${expId}`);
       loadedExperiments++;
-      checkAllExperimentsLoaded();
+      checkAllExperimentsLoadedAndUnblockPage();
       return;
     }
 
@@ -239,7 +244,7 @@ async function loadExperiments(experimentConfigs, resizeElements) {
     if (!isBroadcastExperiment && !isMultiAssetExperiment && !isSingleAssetExperiment && !isMultiAssetBroadcastExperiment) {
       console.warn(`Mismatch in experiment ${expId}: ${nofAssets} assets for ${nofElements} elements`);
       loadedExperiments++;
-      checkAllExperimentsLoaded();
+      checkAllExperimentsLoadedAndUnblockPage();
       return;
     }
 
@@ -299,10 +304,20 @@ async function loadExperiments(experimentConfigs, resizeElements) {
       }
     }
     loadedExperiments++;
-    checkAllExperimentsLoaded();
+    checkAllExperimentsLoadedAndUnblockPage();
   }
 
-  relevantExperiments.forEach(processExperiment);
+  try {
+    await Promise.all(relevantExperiments.map(processExperiment));
+  } catch (error) {
+    console.error('Error in loadExperiments:', error);
+  } finally {
+    if (notFoundExperiments.length > 0) {
+      setTimeout(retryNotFoundExperiments, 500);
+    } else if (totalExperiments === 0) {
+      unblockPage();
+    }
+  }
 
   // Retry not found experiments until success
   function retryNotFoundExperiments() {
@@ -322,7 +337,7 @@ async function loadExperiments(experimentConfigs, resizeElements) {
       notFoundExperiments.push(...stillNotFound);
       setTimeout(retryNotFoundExperiments, 100);
     } else {
-      checkAllExperimentsLoaded();
+      checkAllExperimentsLoadedAndUnblockPage();
     }
   }
 
