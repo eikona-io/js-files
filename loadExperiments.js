@@ -112,6 +112,17 @@ const addCopy = (div, asset) => {
 function loadExperiments(experimentConfigs, resizeElements) {
   posthog.onFeatureFlags(function () {
     const notFoundExperiments = [];
+    let loadedExperiments = 0;
+    const currentPath = window.location.pathname;
+    const relevantExperiments = experimentConfigs.filter(config => config.site_path === currentPath);
+    const totalExperiments = relevantExperiments.length;
+
+    function checkAllExperimentsLoaded() {
+      if (loadedExperiments === totalExperiments) {
+        // All experiments for this page have been loaded
+        unblockPage();
+      }
+    }
 
     function processExperiment(experimentConfig) {
       const {
@@ -121,7 +132,7 @@ function loadExperiments(experimentConfigs, resizeElements) {
       } = experimentConfig;
 
       // Check if the current path matches the experiment's site_path
-      if (site_path && window.location.pathname !== site_path) {
+      if (site_path !== currentPath) {
         logger(`Experiment ${expId} skipped: current path does not match ${site_path}`);
         return;
       }
@@ -129,6 +140,8 @@ function loadExperiments(experimentConfigs, resizeElements) {
       const variant = posthog.getFeatureFlag(expId);
       if (variant === undefined) {
         logger(`Experiment not found: ${expId}`);
+        loadedExperiments++;
+        checkAllExperimentsLoaded();
         return;
       }
 
@@ -149,6 +162,8 @@ function loadExperiments(experimentConfigs, resizeElements) {
       }
       logger('Experiment variant:', expId, variant);
       if (variant === 'control') {
+        loadedExperiments++;
+        checkAllExperimentsLoaded();
         return;
       }
       hideElements(elements);
@@ -167,6 +182,8 @@ function loadExperiments(experimentConfigs, resizeElements) {
         });
         if (!isBroadcastExperiment && !isMultiAssetExperiment && !isSingleAssetExperiment && !isMultiAssetBroadcastExperiment) {
           console.warn(`Mismatch in experiment ${expId}: ${nofAssets} assets for ${nofElements} elements`);
+          loadedExperiments++;
+          checkAllExperimentsLoaded();
           return;
         }
         for (const asset of experimentsAssets) {
@@ -223,10 +240,12 @@ function loadExperiments(experimentConfigs, resizeElements) {
             });
           }
         }
+        loadedExperiments++;
+        checkAllExperimentsLoaded();
       });
     }
 
-    experimentConfigs.forEach(processExperiment);
+    relevantExperiments.forEach(processExperiment);
 
     // Retry not found experiments until success
     function retryNotFoundExperiments() {
@@ -237,7 +256,7 @@ function loadExperiments(experimentConfigs, resizeElements) {
         if (elements.length === 0) {
           stillNotFound.push(expId);
         } else {
-          processExperiment(expId);
+          processExperiment(relevantExperiments.find(config => config.expId === expId));
         }
       });
 
@@ -245,13 +264,23 @@ function loadExperiments(experimentConfigs, resizeElements) {
         notFoundExperiments.length = 0;
         notFoundExperiments.push(...stillNotFound);
         setTimeout(retryNotFoundExperiments, 100);
+      } else {
+        checkAllExperimentsLoaded();
       }
     }
 
     if (notFoundExperiments.length > 0) {
       setTimeout(retryNotFoundExperiments, 500);
+    } else if (totalExperiments === 0) {
+      // If there are no relevant experiments for this page, unblock immediately
+      unblockPage();
     }
   });
+}
+
+function unblockPage() {
+  logger("All relevant experiments loaded. Unblocking page.");
+  window.unblockSignal(window.location.pathname);
 }
 
 // New function to evaluate XPath with fallback
