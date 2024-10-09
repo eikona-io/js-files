@@ -170,11 +170,11 @@ async function loadExperiments(experimentConfigs, resizeElements) {
   let notFoundExperiments = [];
   logger('Total experiments for page:', totalExperiments);
 
-  // function checkAllExperimentsLoadedAndUnblockPage() {
-  //   if (loadedExperiments === totalExperiments) {
-  //     unblockPage();
-  //   }
-  // }
+  function checkAllExperimentsLoadedAndUnblockPage() {
+    if (loadedExperiments === totalExperiments) {
+      unblockPage();
+    }
+  }
 
   async function processExperiment(experimentConfig) {
     const {
