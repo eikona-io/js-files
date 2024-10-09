@@ -25,14 +25,13 @@ function blockPaths(pathsToBlock, enableLogging = false) {
       overlay.style.left = '0';
       overlay.style.width = '100%';
       overlay.style.height = '100%';
-      overlay.style.backgroundColor = 'rgba(0, 0, 0, 1)';
+      overlay.style.backgroundColor = 'white';
       overlay.style.zIndex = '9999';
       overlay.style.display = 'flex';
       overlay.style.justifyContent = 'center';
       overlay.style.alignItems = 'center';
       overlay.style.color = 'white';
       overlay.style.fontSize = '24px';
-      overlay.textContent = 'This page is currently blocked.';
 
       // Append overlay to body
       document.body.appendChild(overlay);
