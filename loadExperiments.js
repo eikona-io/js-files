@@ -49,16 +49,21 @@ async function fetchExperimentAssets(experimentId) {
 export function initializeAndLoadExperiments(posthogToken, sanityProjectId, experimentConfigs, dataset = 'production', enableLogging = false, resizeElements = false) {
   logger = enableLogging ? console.log.bind(console) : () => { };
 
-  // Initialize PostHog
-  posthog.init(posthogToken, { api_host: 'https://us.i.posthog.com', person_profiles: 'always', enable_heatmaps: true });
-
-  // Initialize Sanity
-  initializeSanity(sanityProjectId, dataset);
-
   // Function to load experiments
   function loadExperimentsWhenReady() {
     logger('Loading experiments...');
-    loadExperiments(experimentConfigs, resizeElements);
+    try {
+      // Initialize PostHog
+      posthog.init(posthogToken, { api_host: 'https://us.i.posthog.com', person_profiles: 'always', enable_heatmaps: true });
+
+      // Initialize Sanity
+      initializeSanity(sanityProjectId, dataset);
+
+      loadExperiments(experimentConfigs, resizeElements);
+    } catch (error) {
+      logger('Error initializing or loading experiments:', error);
+      unblockPage();
+    }
   }
 
   // Check if blockPages has already run
