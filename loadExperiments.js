@@ -135,175 +135,204 @@ const addCopy = (div, asset) => {
   });
 }
 
-function loadExperiments(experimentConfigs, resizeElements) {
-  posthog.onFeatureFlags(function () {
-    const notFoundExperiments = [];
-    let loadedExperiments = 0;
-    const currentPath = window.location.pathname;
-    const relevantExperiments = experimentConfigs.filter(config => config.site_path === currentPath);
-    const totalExperiments = relevantExperiments.length;
-    logger('Total experiments for page:', totalExperiments);
+async function loadExperiments(experimentConfigs, resizeElements) {
+  // Function to get feature flags as a Promise
+  const getFeatureFlags = () => {
+    return new Promise(resolve => {
+      posthog.onFeatureFlags(() => {
+        resolve();
+      });
+    });
+  };
 
-    function checkAllExperimentsLoaded() {
-      if (loadedExperiments === totalExperiments) {
-        // All experiments for this page have been loaded
-        unblockPage();
-      }
+  // Start getting feature flags
+  const featureFlagsPromise = getFeatureFlags();
+
+  const currentPath = window.location.pathname;
+  const relevantExperiments = experimentConfigs.filter(config => config.site_path === currentPath);
+
+  // Fetch experiment assets in parallel
+  const fetchAssetsPromises = relevantExperiments.map(config => {
+    return fetchExperimentAssets(config.expId).then(assets => ({ expId: config.expId, assets }));
+  });
+
+  // Wait for both feature flags and experiment assets to be ready
+  const [_, assetsResults] = await Promise.all([featureFlagsPromise, Promise.all(fetchAssetsPromises)]);
+
+  // Map experiment IDs to their assets
+  const assetsByExpId = {};
+  for (const result of assetsResults) {
+    assetsByExpId[result.expId] = result.assets;
+  }
+
+  let loadedExperiments = 0;
+  const totalExperiments = relevantExperiments.length;
+  let notFoundExperiments = [];
+  logger('Total experiments for page:', totalExperiments);
+
+
+  function processExperiment(experimentConfig) {
+    const {
+      expId = '',
+      xPaths = [],
+      site_path = ''
+    } = experimentConfig;
+
+    // Check if the current path matches the experiment's site_path
+    if (site_path !== currentPath) {
+      logger(`Experiment ${expId} skipped: current path does not match ${site_path}`);
+      return;
     }
 
-    function processExperiment(experimentConfig) {
-      const {
-        expId = '',
-        xPaths = [],
-        site_path = ''
-      } = experimentConfig;
+    // fetch variant key
+    const variant = posthog.getFeatureFlag(expId);
+    if (variant === undefined) {
+      logger(`Experiment not found: ${expId}`);
+      loadedExperiments++;
+      checkAllExperimentsLoaded();
+      return;
+    }
+    const variantLetter = variant.slice(-1);
+    const variantKey = `variant_${variantLetter}`;
 
-      // Check if the current path matches the experiment's site_path
-      if (site_path !== currentPath) {
-        logger(`Experiment ${expId} skipped: current path does not match ${site_path}`);
-        return;
-      }
+    let elements = [];
+    xPaths.forEach(xpath => {
+      const matchingElements = evaluateXPathWithFallback(xpath);
+      elements = elements.concat(matchingElements);
+    });
 
-      const variant = posthog.getFeatureFlag(expId);
-      if (variant === undefined) {
-        logger(`Experiment not found: ${expId}`);
-        loadedExperiments++;
-        checkAllExperimentsLoaded();
-        return;
-      }
+    logger('Found elements for experiment:', expId, elements);
+    const nofElements = elements.length;
+    if (nofElements === 0) {
+      notFoundExperiments.push(expId);
+      return;
+    }
+    logger('Experiment variant:', expId, variant);
+    if (variant === 'control') {
+      loadedExperiments++;
+      checkAllExperimentsLoaded();
+      return;
+    }
+    hideElements(elements);
 
-      let elements = [];
-      const variantLetter = variant.slice(-1);
-      const variantKey = `variant_${variantLetter}`;
-      
-      xPaths.forEach(xpath => {
-        const matchingElements = evaluateXPathWithFallback(xpath);
-        elements = elements.concat(matchingElements);
-      });
+    // fetch assets for the experiment
+    const experimentAssets = assetsByExpId[expId];
+    if (!experimentAssets) {
+      logger(`No assets found for experiment ${expId}`);
+      loadedExperiments++;
+      checkAllExperimentsLoaded();
+      return;
+    }
 
-      logger('Found elements for experiment:', expId, elements);
-      const nofElements = elements.length;
-      if (nofElements === 0) {
-        notFoundExperiments.push(expId);
-        return;
-      }
-      logger('Experiment variant:', expId, variant);
-      if (variant === 'control') {
-        loadedExperiments++;
-        checkAllExperimentsLoaded();
-        return;
-      }
-      hideElements(elements);
+    // check assets constraints and experiment type
+    const nofAssets = experimentAssets.length;
+    const isBroadcastExperiment = nofAssets === 1 && nofElements > 1;
+    const isMultiAssetExperiment = nofAssets > 1 && nofElements === nofAssets;
+    const isMultiAssetBroadcastExperiment = nofAssets > 1 && nofElements > nofAssets;
+    const isSingleAssetExperiment = nofAssets === 1 && nofElements === 1;
+    logger('Experiment type:', expId, {
+      isBroadcastExperiment,
+      isMultiAssetExperiment,
+      isSingleAssetExperiment,
+      isMultiAssetBroadcastExperiment
+    });
+    if (!isBroadcastExperiment && !isMultiAssetExperiment && !isSingleAssetExperiment && !isMultiAssetBroadcastExperiment) {
+      console.warn(`Mismatch in experiment ${expId}: ${nofAssets} assets for ${nofElements} elements`);
+      loadedExperiments++;
+      checkAllExperimentsLoaded();
+      return;
+    }
 
-      fetchExperimentAssets(expId).then(experimentsAssets => {
-        const nofAssets = experimentsAssets.length;
-        const isBroadcastExperiment = nofAssets === 1 && nofElements > 1;
-        const isMultiAssetExperiment = nofAssets > 1 && nofElements === nofAssets;
-        const isMultiAssetBroadcastExperiment = nofAssets > 1 && nofElements > nofAssets;
-        const isSingleAssetExperiment = nofAssets === 1 && nofElements === 1;
-        logger('Experiment type:', expId, {
-          isBroadcastExperiment,
-          isMultiAssetExperiment,
-          isSingleAssetExperiment,
-          isMultiAssetBroadcastExperiment
-        });
-        if (!isBroadcastExperiment && !isMultiAssetExperiment && !isSingleAssetExperiment && !isMultiAssetBroadcastExperiment) {
-          console.warn(`Mismatch in experiment ${expId}: ${nofAssets} assets for ${nofElements} elements`);
-          loadedExperiments++;
-          checkAllExperimentsLoaded();
-          return;
-        }
-        for (const asset of experimentsAssets) {
-          const variantAsset = asset[variantKey];
-          if (variantAsset) {
-            const assetId = asset.id;
-            logger('Processing asset:', assetId, 'for experiment:', expId);
-            elements.forEach(element => {
-              const imageUrl = urlForImage(variantAsset, resizeElements ? getElementSizeOnScreen(element) : null);
-              const elementId = getElementIdFromAttributes(element, expId);
-              logger('Processing element:', elementId, 'for experiment:', expId);
-              // check that we are changing the right element
-              // (the experiments in the CMS have the same ID or alt text as the elements)
-              if (isSingleAssetExperiment || isBroadcastExperiment || (isMultiAssetExperiment && assetId === elementId) || (isMultiAssetBroadcastExperiment && assetId === elementId)) {
-                const tagName = element.tagName.toLowerCase();
-                // change the element to the new image
-                // each element type has a different way to change the image
-                if (['img', 'div', 'video'].includes(tagName)) {
-                  if (tagName === 'img') {
-                    element.src = imageUrl;
-                    element.srcset = "";
-                  } else if (tagName === 'div') {
-                    element.style.backgroundImage = `url('${imageUrl}')`;
-                    element.style.backgroundRepeat = 'no-repeat';
-                    element.style.backgroundPosition = 'center';
-                    element.style.backgroundSize = 'cover';
-                    element.dataset.bg = "";
-                    element.dataset.bgHidpi = "";
-                    if (asset.copyType !== 'none') {
-                      addCopy(element, asset);
-                    }
-                  } else if (tagName === 'video') {
-                    const parentElement = element.parentNode;
-                    const img = document.createElement('img');
-                    img.src = imageUrl;
-                    img.id = parentElement.id;
-                    img.alt = parentElement.getAttribute('alt') || '';
-                    img.className = parentElement.className;
-                    if (parentElement.tagName.toLowerCase() === 'video-section') {
-                      // Replace the video-section with an image
-                      parentElement.parentNode.replaceChild(img, parentElement);
-                    } else {
-                      // Replace just the video element with an image
-                      element.parentNode.replaceChild(img, element);
-                    }
-                  }
-                  showElement(element);
-                  logger(`Updated ${tagName} element for experiment:`, expId);
-                  logger(`Full element tag:`, element.outerHTML);
+    // process assets for the experiment and update the DOM
+    for (const asset of experimentAssets) {
+      const variantAsset = asset[variantKey];
+      if (variantAsset) {
+        const assetId = asset.id;
+        logger('Processing asset:', assetId, 'for experiment:', expId);
+        elements.forEach(element => {
+          const imageUrl = urlForImage(variantAsset, resizeElements ? getElementSizeOnScreen(element) : null);
+          const elementId = getElementIdFromAttributes(element, expId);
+          logger('Processing element:', elementId, 'for experiment:', expId);
+          // check that we are changing the right element
+          // (the experiments in the CMS have the same ID or alt text as the elements)
+          if (isSingleAssetExperiment || isBroadcastExperiment || (isMultiAssetExperiment && assetId === elementId) || (isMultiAssetBroadcastExperiment && assetId === elementId)) {
+            const tagName = element.tagName.toLowerCase();
+            // change the element to the new image
+            // each element type has a different way to change the image
+            if (['img', 'div', 'video'].includes(tagName)) {
+              if (tagName === 'img') {
+                element.src = imageUrl;
+                element.srcset = "";
+              } else if (tagName === 'div') {
+                element.style.backgroundImage = `url('${imageUrl}')`;
+                element.style.backgroundRepeat = 'no-repeat';
+                element.style.backgroundPosition = 'center';
+                element.style.backgroundSize = 'cover';
+                element.dataset.bg = "";
+                element.dataset.bgHidpi = "";
+                if (asset.copyType !== 'none') {
+                  addCopy(element, asset);
+                }
+              } else if (tagName === 'video') {
+                const parentElement = element.parentNode;
+                const img = document.createElement('img');
+                img.src = imageUrl;
+                img.id = parentElement.id;
+                img.alt = parentElement.getAttribute('alt') || '';
+                img.className = parentElement.className;
+                if (parentElement.tagName.toLowerCase() === 'video-section') {
+                  // Replace the video-section with an image
+                  parentElement.parentNode.replaceChild(img, parentElement);
                 } else {
-                  console.warn(`Unsupported element type for experiment ${expId}: ${tagName}`);
+                  // Replace just the video element with an image
+                  element.parentNode.replaceChild(img, element);
                 }
               }
-            });
+              showElement(element);
+              logger(`Updated ${tagName} element for experiment:`, expId);
+              logger(`Full element tag:`, element.outerHTML);
+            } else {
+              console.warn(`Unsupported element type for experiment ${expId}: ${tagName}`);
+            }
           }
-        }
-        loadedExperiments++;
-        checkAllExperimentsLoaded();
-      });
-    }
-
-    relevantExperiments.forEach(processExperiment);
-
-    // Retry not found experiments until success
-    function retryNotFoundExperiments() {
-      const stillNotFound = [];
-      notFoundExperiments.forEach(expId => {
-        logger(`Retrying experiment: ${expId}`);
-        const elements = document.querySelectorAll(`[id*="${expId}"], [alt*="${expId}"], [data-bg*="${expId}"], [style*="${expId}"], [class*="${expId}"], [src*="${expId}"]`);
-        if (elements.length === 0) {
-          stillNotFound.push(expId);
-        } else {
-          processExperiment(relevantExperiments.find(config => config.expId === expId));
-        }
-      });
-
-      if (stillNotFound.length > 0) {
-        notFoundExperiments.length = 0;
-        notFoundExperiments.push(...stillNotFound);
-        setTimeout(retryNotFoundExperiments, 100);
-      } else {
-        checkAllExperimentsLoaded();
+        });
       }
     }
+    loadedExperiments++;
+    checkAllExperimentsLoaded();
+  }
 
-    if (notFoundExperiments.length > 0) {
-      setTimeout(retryNotFoundExperiments, 500);
-    } else if (totalExperiments === 0) {
-      // If there are no relevant experiments for this page, unblock immediately
-      unblockPage();
+  relevantExperiments.forEach(processExperiment);
+
+  // Retry not found experiments until success
+  function retryNotFoundExperiments() {
+    const stillNotFound = [];
+    notFoundExperiments.forEach(expId => {
+      logger(`Retrying experiment: ${expId}`);
+      const elements = document.querySelectorAll(`[id*="${expId}"], [alt*="${expId}"], [data-bg*="${expId}"], [style*="${expId}"], [class*="${expId}"], [src*="${expId}"]`);
+      if (elements.length === 0) {
+        stillNotFound.push(expId);
+      } else {
+        processExperiment(relevantExperiments.find(config => config.expId === expId));
+      }
+    });
+
+    if (stillNotFound.length > 0) {
+      notFoundExperiments.length = 0;
+      notFoundExperiments.push(...stillNotFound);
+      setTimeout(retryNotFoundExperiments, 100);
+    } else {
+      checkAllExperimentsLoaded();
     }
-  });
-}
+  }
+
+  if (notFoundExperiments.length > 0) {
+    setTimeout(retryNotFoundExperiments, 500);
+  } else if (totalExperiments === 0) {
+    // If there are no relevant experiments for this page, unblock immediately
+    unblockPage();
+  }
+};
 
 function unblockPage() {
   logger("All relevant experiments loaded. Unblocking page.");
@@ -330,11 +359,11 @@ function evaluateXPathWithFallback(xpath) {
 function evaluateXPathManually(xpath) {
   const parts = xpath.split('/');
   let currentElements = [document.documentElement];
-  
+
   for (let i = 1; i < parts.length; i++) {
     const part = parts[i];
     if (part === '') continue;
-    
+
     const newElements = [];
     for (const element of currentElements) {
       if (part === '*') {
@@ -350,7 +379,7 @@ function evaluateXPathManually(xpath) {
     }
     currentElements = newElements;
   }
-  
+
   return currentElements;
 }
 
