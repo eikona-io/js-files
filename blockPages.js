@@ -75,6 +75,11 @@ function blockPaths(pathsToBlock, enableLogging = false) {
   // Attach unblock function to window object
   window.unblockSignal = unblockPage;
   log('Unblock function attached to window.unblockSignal');
+
+  // Dispatch a custom event to signal that blockPages has finished
+  const event = new CustomEvent('blockPagesLoaded');
+  window.dispatchEvent(event);
+  log('blockPagesLoaded event dispatched');
 }
 
 // Usage example:
@@ -82,3 +87,5 @@ function blockPaths(pathsToBlock, enableLogging = false) {
 // blockPaths(['/blocked-path', '/another-blocked-path']); // Without logging
 // To unblock a specific page:
 // window.unblockSignal('/blocked-path');
+
+window.blockPagesLoaded = true;

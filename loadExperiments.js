@@ -55,8 +55,29 @@ export function initializeAndLoadExperiments(posthogToken, sanityProjectId, expe
   // Initialize Sanity
   initializeSanity(sanityProjectId, dataset);
 
-  // Load experiments
-  loadExperiments(experimentConfigs, resizeElements);
+  // Function to load experiments
+  function loadExperimentsWhenReady() {
+    logger('Loading experiments...');
+    loadExperiments(experimentConfigs, resizeElements);
+  }
+
+  // Check if blockPages has already run
+  if (window.blockPagesLoaded) {
+    logger('blockPages already loaded, proceeding with experiments');
+    loadExperimentsWhenReady();
+  } else {
+    logger('Waiting for blockPages to load...');
+    // If not, wait for the custom event
+    window.addEventListener('blockPagesLoaded', function onBlockPagesLoaded() {
+      logger('blockPagesLoaded event received, loading experiments');
+      loadExperimentsWhenReady();
+      // Remove the event listener to avoid multiple calls
+      window.removeEventListener('blockPagesLoaded', onBlockPagesLoaded);
+    });
+  }
+
+  // Set a flag to indicate that loadExperiments has been initialized
+  window.loadExperimentsInitialized = true;
 }
 
 const getElementIdFromAttributes = (element, expId) => {
