@@ -117,6 +117,7 @@ const getElementSizeOnScreen = (element) => {
 
 const showElement = (element) => {
   element.style.visibility = 'visible';
+  element.style.transition = "opacity 0.5s ease-in";
   setTimeout(() => {
     element.style.opacity = '1';
   }, 1); // Small delay to ensure the transition is applied
