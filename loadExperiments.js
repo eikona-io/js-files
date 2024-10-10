@@ -125,6 +125,19 @@ const addCopy = (div, asset) => {
   });
 }
 
+function prefetchImage(url) {
+  return new Promise((resolve, reject) => {
+    const link = document.createElement('link');
+    link.rel = 'preload';
+    link.as = 'image';
+    link.href = url;
+    link.fetchpriority = 'high';
+    link.onload = resolve;
+    link.onerror = reject;
+    document.head.appendChild(link);
+  });
+}
+
 async function loadExperiments(experimentConfigs, resizeElements) {
   // Function to get feature flags as a Promise
   const getFeatureFlags = () => {
@@ -246,7 +259,7 @@ async function loadExperiments(experimentConfigs, resizeElements) {
         logger('Processing asset:', assetId, 'for experiment:', expId);
         elements.forEach(element => {
           const imageUrl = urlForImage(variantAsset, resizeElements ? getElementSizeOnScreen(element) : null);
-          preloadImage(imageUrl);
+          prefetchImage(imageUrl);
           logger('Processing element:', element, 'for experiment:', expId);
           // check that we are changing the right element
           // (the experiments in the CMS have the same ID or alt text as the elements)
@@ -524,17 +537,4 @@ export function createBanner(divElement, options = {}) {
   textContainer.appendChild(subTextElement);
   shapeOverlay.appendChild(textContainer);
   divElement.appendChild(shapeOverlay);
-}
-
-function prefetchImage(url) {
-  return new Promise((resolve, reject) => {
-    const link = document.createElement('link');
-    link.rel = 'preload';
-    link.as = 'image';
-    link.href = url;
-    link.fetchpriority = 'high';
-    link.onload = resolve;
-    link.onerror = reject;
-    document.head.appendChild(link);
-  });
 }
