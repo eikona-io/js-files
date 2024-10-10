@@ -34,6 +34,17 @@ function urlForImage(source, shape = null) {
 async function fetchExperimentAssets(experimentId) {
   const assets = await client.fetch(`*[_type == "experiment" && id match $id]`, { id: `*${experimentId}*` });
   logger('Fetched assets for experiment:', experimentId, assets);
+
+  // Prefetch images for all variants
+  assets.forEach(asset => {
+    ['variant_a', 'variant_b', 'variant_c', 'variant_d'].forEach(variant => {
+      if (asset[variant]) {
+        const imageUrl = urlForImage(asset[variant]);
+        prefetchImage(imageUrl);
+      }
+    });
+  });
+
   return assets;
 }
 
@@ -46,7 +57,7 @@ async function fetchExperimentAssets(experimentId) {
  * @param {boolean} enableLogging - Whether to enable logging
  * @param {boolean} resizeElements - Whether to resize elements according to their size on screen
  */
-export function initializeAndLoadExperiments(posthogToken, sanityProjectId, experimentConfigs, dataset = 'production', enableLogging = false, resizeElements = false) {
+export function initializeAndLoadExperiments(posthogToken, sanityProjectId, experimentConfigs, dataset = 'production', enableLogging = false) {
   logger = enableLogging ? console.log.bind(console) : () => { };
 
   // Function to load experiments
@@ -59,7 +70,7 @@ export function initializeAndLoadExperiments(posthogToken, sanityProjectId, expe
       // Initialize Sanity
       initializeSanity(sanityProjectId, dataset);
 
-      loadExperiments(experimentConfigs, resizeElements);
+      loadExperiments(experimentConfigs);
     } catch (error) {
       logger('Error initializing or loading experiments:', error);
       unblockPage();
@@ -138,7 +149,7 @@ function prefetchImage(url) {
   });
 }
 
-async function loadExperiments(experimentConfigs, resizeElements) {
+async function loadExperiments(experimentConfigs) {
   // Function to get feature flags as a Promise
   const getFeatureFlags = () => {
     return new Promise(resolve => {
@@ -258,7 +269,7 @@ async function loadExperiments(experimentConfigs, resizeElements) {
         const assetId = asset.id;
         logger('Processing asset:', assetId, 'for experiment:', expId);
         elements.forEach(element => {
-          const imageUrl = urlForImage(variantAsset, resizeElements ? getElementSizeOnScreen(element) : null);
+          const imageUrl = urlForImage(variantAsset);
           prefetchImage(imageUrl);
           logger('Processing element:', element, 'for experiment:', expId);
           // check that we are changing the right element
