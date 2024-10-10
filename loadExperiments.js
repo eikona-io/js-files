@@ -100,6 +100,9 @@ const hideElements = (elements) => {
     element.style.visibility = 'hidden';
     element.style.opacity = '0';
     element.style.backgroundColor = 'white';
+    element.style.backgroundImage = 'none';
+    element.style.dataset.bg = "";
+    element.style.dataset.bgHidpi = "";
   });
 }
 
