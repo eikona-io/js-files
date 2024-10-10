@@ -99,6 +99,7 @@ const hideElements = (elements) => {
   elements.forEach(element => {
     element.style.visibility = 'hidden';
     element.style.opacity = '0';
+    element.style.backgroundColor = 'white';
   });
 }
 
