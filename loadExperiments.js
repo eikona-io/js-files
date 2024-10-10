@@ -65,7 +65,7 @@ export function initializeAndLoadExperiments(posthogToken, sanityProjectId, expe
     logger('Loading experiments...');
     try {
       // Initialize PostHog
-      posthog.init(posthogToken, { api_host: 'https://us.i.posthog.com', person_profiles: 'always', enable_heatmaps: true });
+      posthog.init(posthogToken, { api_host: 'https://ph.eikona.io', person_profiles: 'always', enable_heatmaps: true });
 
       // Initialize Sanity
       initializeSanity(sanityProjectId, dataset);
