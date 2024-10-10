@@ -322,43 +322,33 @@ async function loadExperiments(experimentConfigs) {
     checkAllExperimentsLoadedAndUnblockPage();
   }
 
+  async function retryNotFoundExperiments() {
+    const notFoundExperimentsCopy = [...notFoundExperiments];
+    notFoundExperiments = [];
+    for (const expId of notFoundExperimentsCopy) {
+      logger(`Retrying experiment: ${expId}`);
+      await processExperiment(relevantExperiments.find(config => config.expId === expId));
+    };
+
+    if (notFoundExperiments.length > 0) {
+      setTimeout(() => {
+        retryNotFoundExperiments();
+      }, 100);
+    } else {
+      checkAllExperimentsLoadedAndUnblockPage();
+    }
+  }
+
   try {
     await Promise.all(relevantExperiments.map(processExperiment));
   } catch (error) {
     console.error('Error in loadExperiments:', error);
   } finally {
     if (notFoundExperiments.length > 0) {
-      setTimeout(retryNotFoundExperiments, 500);
+      setTimeout(() => {
+        retryNotFoundExperiments();
+      }, 500);
     }
-    unblockPage();
-  }
-
-  // Retry not found experiments until success
-  function retryNotFoundExperiments() {
-    const stillNotFound = [];
-    notFoundExperiments.forEach(expId => {
-      logger(`Retrying experiment: ${expId}`);
-      const elements = document.querySelectorAll(`[id*="${expId}"], [alt*="${expId}"], [data-bg*="${expId}"], [style*="${expId}"], [class*="${expId}"], [src*="${expId}"]`);
-      if (elements.length === 0) {
-        stillNotFound.push(expId);
-      } else {
-        processExperiment(relevantExperiments.find(config => config.expId === expId));
-      }
-    });
-
-    if (stillNotFound.length > 0) {
-      notFoundExperiments.length = 0;
-      notFoundExperiments.push(...stillNotFound);
-      setTimeout(retryNotFoundExperiments, 100);
-    } else {
-      checkAllExperimentsLoadedAndUnblockPage();
-    }
-  }
-
-  if (notFoundExperiments.length > 0) {
-    setTimeout(retryNotFoundExperiments, 500);
-  } else if (totalExperiments === 0) {
-    // If there are no relevant experiments for this page, unblock immediately
     unblockPage();
   }
 };
