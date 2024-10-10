@@ -246,8 +246,7 @@ async function loadExperiments(experimentConfigs, resizeElements) {
         logger('Processing asset:', assetId, 'for experiment:', expId);
         elements.forEach(element => {
           const imageUrl = urlForImage(variantAsset, resizeElements ? getElementSizeOnScreen(element) : null);
-          const elementId = getElementIdFromAttributes(element, expId);
-          logger('Processing element:', elementId, 'for experiment:', expId);
+          logger('Processing element:', element, 'for experiment:', expId);
           // check that we are changing the right element
           // (the experiments in the CMS have the same ID or alt text as the elements)
           // TODO: enable multi-asset experiments with xpath in sanity
