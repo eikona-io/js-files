@@ -85,16 +85,6 @@ export function initializeAndLoadExperiments(posthogToken, sanityProjectId, expe
   window.loadExperimentsInitialized = true;
 }
 
-const getElementIdFromAttributes = (element, expId) => {
-  const attributes = element.attributes;
-  for (const attr of attributes) {
-    if (attr.value.includes(expId)) {
-      return attr.value;
-    }
-  }
-  return null;
-}
-
 const hideElements = (elements) => {
   elements.forEach(element => {
     element.style.visibility = 'hidden';
@@ -260,7 +250,8 @@ async function loadExperiments(experimentConfigs, resizeElements) {
           logger('Processing element:', elementId, 'for experiment:', expId);
           // check that we are changing the right element
           // (the experiments in the CMS have the same ID or alt text as the elements)
-          if (isSingleAssetExperiment || isBroadcastExperiment || (isMultiAssetExperiment && assetId === elementId) || (isMultiAssetBroadcastExperiment && assetId === elementId)) {
+          // TODO: enable multi-asset experiments with xpath in sanity
+          if (isSingleAssetExperiment || isBroadcastExperiment) {
             const tagName = element.tagName.toLowerCase();
             // change the element to the new image
             // each element type has a different way to change the image
