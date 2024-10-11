@@ -1,6 +1,6 @@
 // Function to block specified paths
 function blockPaths(pathsToBlock, enableLogging = false) {
-  const log = enableLogging ? console.log : () => {};
+  const log = enableLogging ? console.log : () => { };
   log('Initializing blockPaths with:', pathsToBlock);
   // Convert paths to RegExp objects for flexible matching
   const blockedPatterns = pathsToBlock.map(path => new RegExp(`^${path}(\\?|$)`));
@@ -60,13 +60,25 @@ function blockPaths(pathsToBlock, enableLogging = false) {
     }
   }
 
+  // Add preload link for Posthog script
+  function addPosthogPreload() {
+    const head = document.head || document.getElementsByTagName('head')[0];
+    const link = document.createElement('link');
+    link.rel = 'preload';
+    link.href = 'https://ph.eikona.io/static/array.js';
+    link.as = 'script';
+    head.appendChild(link);
+    log('Posthog preload link added to head');
+  }
+
   // Initial check and block
   if (isPathBlocked()) {
     log('Initial check: page is blocked');
     if (document.readyState === 'loading') {
-      document.addEventListener('readystatechange', function() {
+      document.addEventListener('readystatechange', function () {
         if (document.readyState === 'interactive') {
           blockPage();
+          addPosthogPreload();
         }
       });
     } else {
