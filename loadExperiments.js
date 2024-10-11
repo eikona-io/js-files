@@ -270,11 +270,6 @@ async function loadExperiments(experimentConfigs) {
         logger('Processing asset:', assetId, 'for experiment:', expId);
         elements.forEach(element => {
           const imageUrl = urlForImage(variantAsset);
-          prefetchImage(imageUrl).then(() => {
-            // count this experiment as loaded only after the image is loaded
-            loadedExperiments++;
-            checkAllExperimentsLoadedAndUnblockPage();
-          });
           logger('Processing element:', element, 'for experiment:', expId);
           // check that we are changing the right element
           // (the experiments in the CMS have the same ID or alt text as the elements)
@@ -312,9 +307,29 @@ async function loadExperiments(experimentConfigs) {
                   element.parentNode.replaceChild(img, element);
                 }
               }
-              showElement(element);
-              logger(`Updated ${tagName} element for experiment:`, expId);
-              logger(`Full element tag:`, element.outerHTML);
+              const imageLoadPromise = new Promise((resolve, reject) => {
+                const img = new Image();
+                img.onload = resolve;
+                img.onerror = reject;
+                img.src = imageUrl;
+              });
+
+              imageLoadPromise
+                .then(() => {
+                  // Image has loaded successfully, we can count this experiment as loaded
+                  loadedExperiments++;
+                  checkAllExperimentsLoadedAndUnblockPage();
+                  showElement(element);
+                  logger(`Updated ${tagName} element for experiment:`, expId);
+                  logger(`Full element tag:`, element.outerHTML);
+                })
+                .catch((error) => {
+                  console.error(`Failed to load image for experiment ${expId}:`, error);
+                  // Even if image fails to load, we should count it as processed
+                  loadedExperiments++;
+                  checkAllExperimentsLoadedAndUnblockPage();
+                  showElement(element);
+                });
             } else {
               console.warn(`Unsupported element type for experiment ${expId}: ${tagName}`);
             }
