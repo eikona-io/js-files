@@ -271,7 +271,11 @@ async function loadExperiments(experimentConfigs) {
         logger('Processing asset:', assetId, 'for experiment:', expId);
         elements.forEach(element => {
           const imageUrl = urlForImage(variantAsset);
-          prefetchImage(imageUrl);
+          prefetchImage(imageUrl).then(() => {
+            // count this experiment as loaded only after the image is loaded
+            loadedExperiments++;
+            checkAllExperimentsLoadedAndUnblockPage();
+          });
           logger('Processing element:', element, 'for experiment:', expId);
           // check that we are changing the right element
           // (the experiments in the CMS have the same ID or alt text as the elements)
@@ -319,8 +323,6 @@ async function loadExperiments(experimentConfigs) {
         });
       }
     }
-    loadedExperiments++;
-    checkAllExperimentsLoadedAndUnblockPage();
   }
 
   async function retryNotFoundExperiments() {
