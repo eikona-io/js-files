@@ -346,13 +346,14 @@ async function loadExperiments(experimentConfigs) {
     await Promise.all(relevantExperiments.map(processExperiment));
   } catch (error) {
     console.error('Error in loadExperiments:', error);
+    unblockPage();
   } finally {
     if (notFoundExperiments.length > 0) {
       setTimeout(() => {
         retryNotFoundExperiments();
       }, 500);
     }
-    unblockPage();
+    checkAllExperimentsLoadedAndUnblockPage();
   }
 };
 
