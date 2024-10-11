@@ -143,6 +143,7 @@ function prefetchImage(url) {
     link.as = 'image';
     link.href = url;
     link.fetchpriority = 'high';
+    link.importance = 'high';
     link.onload = resolve;
     link.onerror = reject;
     document.head.appendChild(link);
