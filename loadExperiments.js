@@ -319,7 +319,6 @@ async function loadExperiments(experimentConfigs) {
                   // Image has loaded successfully, we can count this experiment as loaded
                   loadedExperiments++;
                   checkAllExperimentsLoadedAndUnblockPage();
-                  showElement(element);
                   logger(`Updated ${tagName} element for experiment:`, expId);
                   logger(`Full element tag:`, element.outerHTML);
                 })
@@ -328,8 +327,8 @@ async function loadExperiments(experimentConfigs) {
                   // Even if image fails to load, we should count it as processed
                   loadedExperiments++;
                   checkAllExperimentsLoadedAndUnblockPage();
-                  showElement(element);
                 });
+                showElement(element);
             } else {
               console.warn(`Unsupported element type for experiment ${expId}: ${tagName}`);
             }
