@@ -333,14 +333,15 @@ async function loadExperiments(experimentConfigs) {
                   checkAllExperimentsLoadedAndUnblockPage();
                   logger(`Updated ${tagName} element for experiment:`, expId);
                   logger(`Full element tag:`, element.outerHTML);
+                  showElement(element);
                 })
                 .catch((error) => {
                   console.error(`Failed to load image for experiment ${expId}:`, error);
                   // Even if image fails to load, we should count it as processed
                   loadedExperiments++;
                   checkAllExperimentsLoadedAndUnblockPage();
+                  showElement(element);
                 });
-                showElement(element);
             } else {
               console.warn(`Unsupported element type for experiment ${expId}: ${tagName}`);
             }
