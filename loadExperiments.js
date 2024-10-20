@@ -163,7 +163,7 @@ async function loadExperiments(experimentConfigs) {
   const featureFlagsPromise = getFeatureFlags();
 
   const currentPath = window.location.pathname;
-  const relevantExperiments = experimentConfigs.filter(config => config.site_path === currentPath);
+  const relevantExperiments = experimentConfigs.filter(config => config.sitePath === currentPath);
 
   // Fetch experiment assets in parallel
   const fetchAssetsPromises = relevantExperiments.map(config => {
@@ -194,12 +194,13 @@ async function loadExperiments(experimentConfigs) {
     const {
       expId = '',
       xPaths = [],
-      site_path = ''
+      sitePath = '',
+      textXPaths = [],
     } = experimentConfig;
 
-    // Check if the current path matches the experiment's site_path
-    if (site_path !== currentPath) {
-      logger(`Experiment ${expId} skipped: current path does not match ${site_path}`);
+    // Check if the current path matches the experiment's sitePath
+    if (sitePath !== currentPath) {
+      logger(`Experiment ${expId} skipped: current path does not match ${sitePath}`);
       return;
     }
 
@@ -219,6 +220,11 @@ async function loadExperiments(experimentConfigs) {
       const matchingElements = evaluateXPathWithFallback(xpath);
       elements = elements.concat(matchingElements);
     });
+    let textElements = [];
+    textXPaths.forEach(xpath => {
+      const matchingElements = evaluateXPathWithFallback(xpath);
+      textElements = textElements.concat(matchingElements);
+    });
 
     logger('Found elements for experiment:', expId, elements);
     const nofElements = elements.length;
@@ -233,6 +239,7 @@ async function loadExperiments(experimentConfigs) {
       return;
     }
     hideElements(elements);
+    removeTextFromElements(textElements);
 
     // fetch assets for the experiment
     const experimentAssets = assetsByExpId[expId];
@@ -388,7 +395,12 @@ function unblockPage() {
   window.unblockSignal(window.location.pathname);
 }
 
-// New function to evaluate XPath with fallback
+function removeTextFromElements(textElements) {
+  textElements.forEach(element => {
+    element.style.display = 'none';
+  });
+}
+
 function evaluateXPathWithFallback(xpath) {
   try {
     logger('Evaluating XPath:', xpath);
