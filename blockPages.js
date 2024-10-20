@@ -36,13 +36,14 @@ function blockPaths(pathsToBlock, enableLogging = false) {
       // Append overlay to body or create body if it doesn't exist
       if (document.body) {
         document.body.appendChild(overlay);
+        document.body.style.overflow = 'hidden';
       } else {
         document.documentElement.appendChild(overlay);
+        // Prevent scrolling
+        document.documentElement.style.overflow = 'hidden';
       }
       log('Overlay appended to body');
 
-      // Prevent scrolling
-      document.body.style.overflow = 'hidden';
       log('Scrolling disabled');
     }
   }
@@ -55,6 +56,7 @@ function blockPaths(pathsToBlock, enableLogging = false) {
       if (overlay) {
         overlay.remove();
         document.body.style.overflow = '';
+        document.documentElement.style.overflow = '';
         log(`Path ${path} unblocked successfully`);
       } else {
         log(`No overlay found for path ${path}`);
