@@ -282,6 +282,10 @@ async function loadExperiments(experimentConfigs) {
               if (tagName === 'img') {
                 element.src = imageUrl;
                 element.srcset = "";
+                const sourceElement = element.parentElement.querySelector('source');
+                if (sourceElement) {
+                    sourceElement.remove();
+                }
               } else if (tagName === 'div') {
                 element.style.backgroundImage = `url('${imageUrl}')`;
                 element.style.backgroundRepeat = 'no-repeat';
