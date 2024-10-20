@@ -227,6 +227,7 @@ async function loadExperiments(experimentConfigs) {
     });
 
     logger('Found elements for experiment:', expId, elements);
+    logger('Found text elements for experiment:', expId, textElements);
     const nofElements = elements.length;
     if (nofElements === 0) {
       notFoundExperiments.push(expId);
