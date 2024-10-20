@@ -77,12 +77,12 @@ function blockPaths(pathsToBlock, enableLogging = false) {
     if (document.readyState === 'loading') {
       document.addEventListener('readystatechange', function () {
         if (document.readyState === 'interactive') {
-          blockPage();
+          // blockPage();
           addPosthogPreload();
         }
       });
     } else {
-      blockPage();
+      // blockPage();
     }
   } else {
     log('Initial check: page is not blocked');
