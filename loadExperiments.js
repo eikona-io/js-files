@@ -284,6 +284,9 @@ async function loadExperiments(experimentConfigs) {
                 element.srcset = "";
                 const sourceElement = element.parentElement.querySelector('source');
                 if (sourceElement) {
+                    console.log('Removing source element:', sourceElement);
+                    sourceElement.srcset = "";
+                    sourceElement.src = "";
                     sourceElement.remove();
                 }
               } else if (tagName === 'div') {
