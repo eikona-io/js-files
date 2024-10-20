@@ -45,6 +45,12 @@ function blockPaths(pathsToBlock, enableLogging = false) {
       log('Overlay appended to body');
 
       log('Scrolling disabled');
+
+      // Set a timeout to unblock the page after 2 seconds
+      setTimeout(() => {
+        unblockPage(window.location.pathname);
+        log('Page unblocked after 2 seconds timeout');
+      }, 2000);
     }
   }
 
