@@ -129,9 +129,11 @@ const addCopy = (div, asset) => {
     text: asset.copyText,
     subText: asset.copySubtext,
     textColor: asset.copyTextColor,
+    subTextColor: asset.copySubtextColor,
     shapeColor: asset.copyShapeColor,
     textSize: isMobile ? asset.copyTextSizeMobile : asset.copyTextSize,
     subTextSize: isMobile ? asset.copySubtextSizeMobile : asset.copySubtextSize,
+    textFont: asset.copyTextFont,
   });
 }
 
@@ -471,9 +473,11 @@ function evaluateXPathManually(xpath) {
  * @param {string} options.text - The text of the banner
  * @param {string} options.subText - The subtext of the banner
  * @param {string} options.textColor - The text color of the banner
+ * @param {string} options.subTextColor - The subtext color of the banner
  * @param {string} options.shapeColor - The shape color of the banner
  * @param {string} options.textSize - The text size of the banner
  * @param {string} options.subTextSize - The subtext size of the banner
+ * @param {string} options.textFont - The text font of the banner
  * @param {string} options.textShadow - The text shadow of the banner
  * @param {string} options.subTextShadow - The subtext shadow of the banner
  */
@@ -487,6 +491,7 @@ export function createBanner(divElement, options = {}) {
     shapeColor = '#000000',
     textSize = '6vh',
     subTextSize = '2.5vh',
+    textFont = 'Gotham, sans-serif',
     textShadow = '-10px 10px 20px rgba(0, 0, 0, 0.7)',
     subTextShadow = '-5px 5px 10px rgba(0, 0, 0, 0.7)',
   } = options;
@@ -505,7 +510,7 @@ export function createBanner(divElement, options = {}) {
   shapeOverlay.style.display = 'flex';
   shapeOverlay.style.alignItems = 'center';
   shapeOverlay.style.justifyContent = 'center';
-  shapeOverlay.style.fontFamily = 'Gotham, sans-serif';
+  shapeOverlay.style.fontFamily = textFont;
   shapeOverlay.style.fontWeight = 'bold';
 
   let clipPath;
