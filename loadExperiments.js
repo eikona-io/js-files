@@ -495,7 +495,7 @@ export function createBanner(divElement, options = {}) {
   divElement.style.overflow = 'hidden';
 
   const shapeOverlay = document.createElement('div');
-  const requiresBackground = shape !== 'centered' && shape !== 'aligned-left' && shape !== 'aligned-right';
+  const requiresBackground = shape !== 'centered' && shape !== 'aligned-left' && shape !== 'aligned-right' && shape !== 'bottom-center' && shape !== 'top-center';
   shapeOverlay.style.position = 'absolute';
   shapeOverlay.style.top = '0';
   shapeOverlay.style.left = '0';
@@ -546,6 +546,14 @@ export function createBanner(divElement, options = {}) {
     case 'aligned-right':
       clipPath = '';
       textContainerStyle = { top: '50%', left: '100%', transform: 'translate(-105%, -50%)', width: '40%', height: '100%' };
+      break;
+    case 'bottom-center':
+      clipPath = '';
+      textContainerStyle = { top: '80%', left: '50%', transform: 'translate(-50%, -50%)', width: '60%', height: '100%' };
+      break;
+    case 'top-center':
+      clipPath = '';
+      textContainerStyle = { top: '20%', left: '50%', transform: 'translate(-50%, -50%)', width: '60%', height: '100%' };
       break;
     default:
       clipPath = '';
