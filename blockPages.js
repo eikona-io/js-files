@@ -33,8 +33,12 @@ function blockPaths(pathsToBlock, enableLogging = false) {
       overlay.style.color = 'white';
       overlay.style.fontSize = '24px';
 
-      // Append overlay to body
-      document.body.appendChild(overlay);
+      // Append overlay to body or create body if it doesn't exist
+      if (document.body) {
+        document.body.appendChild(overlay);
+      } else {
+        document.documentElement.appendChild(overlay);
+      }
       log('Overlay appended to body');
 
       // Prevent scrolling
@@ -74,32 +78,20 @@ function blockPaths(pathsToBlock, enableLogging = false) {
   // Initial check and block
   if (isPathBlocked()) {
     log('Initial check: page is blocked');
-    if (document.readyState === 'loading') {
-      document.addEventListener('DOMContentLoaded', function () {
-        blockPageAndAddSignal();
-      });
-    } else {
-      // If DOMContentLoaded has already fired, execute immediately
-      blockPageAndAddSignal();
-    }
-  } else {
-    log('Initial check: page is not blocked');
+    blockPage();
+    addPosthogPreload();
+    // Attach unblock function to window object
+    window.unblockSignal = unblockPage;
+    log('Unblock function attached to window.unblockSignal');
+
+    // Dispatch a custom event to signal that blockPages has finished
+    window.blockPagesLoaded = true;
+    const event = new CustomEvent('blockPagesLoaded');
+    window.dispatchEvent(event);
+    log('blockPagesLoaded event dispatched');
   }
 }
 
-function blockPageAndAddSignal() {
-  blockPage();
-  addPosthogPreload();
-  // Attach unblock function to window object
-  window.unblockSignal = unblockPage;
-  log('Unblock function attached to window.unblockSignal');
-  
-  // Dispatch a custom event to signal that blockPages has finished
-  window.blockPagesLoaded = true;
-  const event = new CustomEvent('blockPagesLoaded');
-  window.dispatchEvent(event);
-  log('blockPagesLoaded event dispatched');
-}
 // Usage example:
 // blockPaths(['/blocked-path', '/another-blocked-path'], true); // With logging enabled
 // blockPaths(['/blocked-path', '/another-blocked-path']); // Without logging
