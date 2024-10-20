@@ -76,29 +76,30 @@ function blockPaths(pathsToBlock, enableLogging = false) {
     log('Initial check: page is blocked');
     if (document.readyState === 'loading') {
       document.addEventListener('DOMContentLoaded', function () {
-        blockPage();
-        addPosthogPreload();
+        blockPageAndAddSignal();
       });
     } else {
       // If DOMContentLoaded has already fired, execute immediately
-      blockPage();
-      addPosthogPreload();
+      blockPageAndAddSignal();
     }
   } else {
     log('Initial check: page is not blocked');
   }
+}
 
+function blockPageAndAddSignal() {
+  blockPage();
+  addPosthogPreload();
   // Attach unblock function to window object
   window.unblockSignal = unblockPage;
   log('Unblock function attached to window.unblockSignal');
-
+  
   // Dispatch a custom event to signal that blockPages has finished
   window.blockPagesLoaded = true;
   const event = new CustomEvent('blockPagesLoaded');
   window.dispatchEvent(event);
   log('blockPagesLoaded event dispatched');
 }
-
 // Usage example:
 // blockPaths(['/blocked-path', '/another-blocked-path'], true); // With logging enabled
 // blockPaths(['/blocked-path', '/another-blocked-path']); // Without logging
