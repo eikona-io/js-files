@@ -397,6 +397,7 @@ function unblockPage() {
 
 function removeTextFromElements(textElements) {
   textElements.forEach(element => {
+    logger('Removing text from element:', element);
     element.style.display = 'none';
   });
 }
