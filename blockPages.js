@@ -75,14 +75,14 @@ function blockPaths(pathsToBlock, enableLogging = false) {
   if (isPathBlocked()) {
     log('Initial check: page is blocked');
     if (document.readyState === 'loading') {
-      document.addEventListener('readystatechange', function () {
-        if (document.readyState === 'interactive') {
-          blockPage();
-          addPosthogPreload();
-        }
+      document.addEventListener('DOMContentLoaded', function () {
+        blockPage();
+        addPosthogPreload();
       });
     } else {
+      // If DOMContentLoaded has already fired, execute immediately
       blockPage();
+      addPosthogPreload();
     }
   } else {
     log('Initial check: page is not blocked');
