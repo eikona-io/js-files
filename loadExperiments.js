@@ -298,9 +298,12 @@ async function loadExperiments(experimentConfigs) {
                     element.parentNode.insertBefore(parentDiv, element);
                     parentDiv.appendChild(element);
 
-                    const copyDiv = document.createElement('div');
-                    parentDiv.appendChild(copyDiv);
-                    addCopy(copyDiv, asset);
+                  const copyDiv = document.createElement('div');
+                  copyDiv.style.position = 'absolute';
+                  copyDiv.style.top = '0';
+                  copyDiv.style.left = '0';
+                  parentDiv.appendChild(copyDiv);
+                  addCopy(copyDiv, asset);
                 }
                 element.src = imageUrl;
                 element.srcset = "";
