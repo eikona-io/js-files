@@ -292,6 +292,16 @@ async function loadExperiments(experimentConfigs) {
             // each element type has a different way to change the image
             if (['img', 'div', 'video'].includes(tagName)) {
               if (tagName === 'img') {
+                if (asset.copyType !== 'none') {
+                    const parentDiv = document.createElement('div');
+                    parentDiv.style.position = 'relative';
+                    element.parentNode.insertBefore(parentDiv, element);
+                    parentDiv.appendChild(element);
+
+                    const copyDiv = document.createElement('div');
+                    parentDiv.appendChild(copyDiv);
+                    addCopy(copyDiv, asset);
+                }
                 element.src = imageUrl;
                 element.srcset = "";
                 element.style.objectFit = 'cover';
