@@ -487,7 +487,7 @@ export function createBanner(divElement, options = {}) {
     subTextShadow = '-5px 5px 10px rgba(0, 0, 0, 0.7)',
   } = options;
 
-  divElement.style.position = 'relative';
+  // divElement.style.position = 'relative';
   divElement.style.overflow = 'hidden';
 
   const shapeOverlay = document.createElement('div');
