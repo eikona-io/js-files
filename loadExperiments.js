@@ -282,6 +282,7 @@ async function loadExperiments(experimentConfigs) {
               if (tagName === 'img') {
                 element.src = imageUrl;
                 element.srcset = "";
+                element.style.objectFit = 'cover';
                 const sourceElement = element.parentElement.querySelector('source');
                 if (sourceElement) {
                     sourceElement.remove();
