@@ -295,15 +295,19 @@ async function loadExperiments(experimentConfigs) {
                 if (asset.copyType !== 'none') {
                     const parentDiv = document.createElement('div');
                     parentDiv.style.position = 'relative';
+                    parentDiv.style.width = `${elementSize.width}px`;
+                    parentDiv.style.height = `${elementSize.height}px`;
                     element.parentNode.insertBefore(parentDiv, element);
                     parentDiv.appendChild(element);
 
-                  const copyDiv = document.createElement('div');
-                  copyDiv.style.position = 'absolute';
-                  copyDiv.style.top = '0';
-                  copyDiv.style.left = '0';
-                  parentDiv.appendChild(copyDiv);
-                  addCopy(copyDiv, asset);
+                    const copyDiv = document.createElement('div');
+                    copyDiv.style.position = 'absolute';
+                    copyDiv.style.top = '0';
+                    copyDiv.style.left = '0';
+                    copyDiv.style.width = '100%';
+                    copyDiv.style.height = '100%';
+                    parentDiv.appendChild(copyDiv);
+                    addCopy(copyDiv, asset);
                 }
                 element.src = imageUrl;
                 element.srcset = "";
