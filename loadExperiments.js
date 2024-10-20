@@ -276,6 +276,10 @@ async function loadExperiments(experimentConfigs) {
           // TODO: enable multi-asset experiments with xpath in sanity
           if (isSingleAssetExperiment || isBroadcastExperiment) {
             const tagName = element.tagName.toLowerCase();
+            const elementSize = getElementSizeOnScreen(element);
+            // preserve the original image size
+            element.style.width = `${elementSize.width}px`;
+            element.style.height = `${elementSize.height}px`;
             // change the element to the new image
             // each element type has a different way to change the image
             if (['img', 'div', 'video'].includes(tagName)) {
@@ -304,6 +308,9 @@ async function loadExperiments(experimentConfigs) {
                 img.id = parentElement.id;
                 img.alt = parentElement.getAttribute('alt') || '';
                 img.className = parentElement.className;
+                // preserve the original image size
+                img.style.width = `${elementSize.width}px`;
+                img.style.height = `${elementSize.height}px`;
                 if (parentElement.tagName.toLowerCase() === 'video-section') {
                   // Replace the video-section with an image
                   parentElement.parentNode.replaceChild(img, parentElement);
