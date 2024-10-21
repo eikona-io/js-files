@@ -292,7 +292,7 @@ async function loadExperiments(experimentConfigs) {
             element.style.height = `${elementSize.height}px`;
             // change the element to the new image
             // each element type has a different way to change the image
-            if (['img', 'div', 'video'].includes(tagName)) {
+            if (['img', 'div', 'video', 'section'].includes(tagName)) {
               if (tagName === 'img') {
                 if (asset.copyType !== 'none') {
                     const parentDiv = document.createElement('div');
@@ -318,7 +318,7 @@ async function loadExperiments(experimentConfigs) {
                 if (sourceElement) {
                     sourceElement.remove();
                 }
-              } else if (tagName === 'div') {
+              } else if (tagName === 'div' || tagName === 'section') {
                 element.style.backgroundImage = `url('${imageUrl}')`;
                 element.style.backgroundRepeat = 'no-repeat';
                 element.style.backgroundPosition = 'center';
