@@ -46,11 +46,11 @@ function blockPaths(pathsToBlock, enableLogging = false) {
 
       log('Scrolling disabled');
 
-      // Set a timeout to unblock the page after 2 seconds
+      // Set a timeout to unblock the page after 5 seconds
       setTimeout(() => {
         unblockPage(window.location.pathname);
-        log('Page unblocked after 2 seconds timeout');
-      }, 2000);
+        log('Page unblocked after 5 seconds timeout');
+      }, 5000);
     }
   }
 
