@@ -134,6 +134,7 @@ const addCopy = (div, asset) => {
     textSize: isMobile ? asset.copyTextSizeMobile : asset.copyTextSize,
     subTextSize: isMobile ? asset.copySubtextSizeMobile : asset.copySubtextSize,
     textFont: asset.copyTextFont,
+    textShadowStrength: asset.copyTextShadowStrength,
   });
 }
 
@@ -492,13 +493,14 @@ export function createBanner(divElement, options = {}) {
     textSize = '6vh',
     subTextSize = '2.5vh',
     textFont = 'Gotham, sans-serif',
-    textShadow = '-10px 10px 20px rgba(0, 0, 0, 0.7)',
-    subTextShadow = '-5px 5px 10px rgba(0, 0, 0, 0.7)',
+    textShadowStrength = 0.7,
   } = options;
-
+  
   // divElement.style.position = 'relative';
   divElement.style.overflow = 'hidden';
-
+  
+  const textShadow = `-10px 10px 20px rgba(0, 0, 0, ${textShadowStrength})`;
+  const subTextShadow = `-5px 5px 10px rgba(0, 0, 0, ${subTextShadowStrength})`;
   const shapeOverlay = document.createElement('div');
   const requiresBackground = shape !== 'centered' && shape !== 'aligned-left' && shape !== 'aligned-right' && shape !== 'bottom-center' && shape !== 'top-center';
   shapeOverlay.style.position = 'absolute';
