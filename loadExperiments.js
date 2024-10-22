@@ -500,7 +500,7 @@ export function createBanner(divElement, options = {}) {
   divElement.style.overflow = 'hidden';
   
   const textShadow = `-10px 10px 20px rgba(0, 0, 0, ${textShadowStrength})`;
-  const subTextShadow = `-5px 5px 10px rgba(0, 0, 0, ${subTextShadowStrength})`;
+  const subTextShadow = `-5px 5px 10px rgba(0, 0, 0, ${textShadowStrength})`;
   const shapeOverlay = document.createElement('div');
   const requiresBackground = shape !== 'centered' && shape !== 'aligned-left' && shape !== 'aligned-right' && shape !== 'bottom-center' && shape !== 'top-center';
   shapeOverlay.style.position = 'absolute';
