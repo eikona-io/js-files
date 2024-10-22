@@ -279,15 +279,14 @@ async function loadExperiments(experimentConfigs) {
         const assetId = asset.id;
         logger('Processing asset:', assetId, 'for experiment:', expId);
         elements.forEach(element => {
+          const imageUrl = urlForImage(variantAsset);
           logger('Processing element:', element, 'for experiment:', expId);
           // check that we are changing the right element
           // (the experiments in the CMS have the same ID or alt text as the elements)
           // TODO: enable multi-asset experiments with xpath in sanity
           if (isSingleAssetExperiment || isBroadcastExperiment) {
             const tagName = element.tagName.toLowerCase();
-            let elementSize = getElementSizeOnScreen(element);
-            elementSize.height = Math.round(elementSize.height * 0.8);
-            const imageUrl = urlForImage(variantAsset, elementSize);
+            const elementSize = getElementSizeOnScreen(element);
             // preserve the original image size
             element.style.width = `${elementSize.width}px`;
             element.style.height = `${elementSize.height}px`;
@@ -314,7 +313,7 @@ async function loadExperiments(experimentConfigs) {
                 }
                 element.src = imageUrl;
                 element.srcset = "";
-                element.style.objectFit = 'contain';
+                element.style.objectFit = 'cover';
                 const sourceElement = element.parentElement.querySelector('source');
                 if (sourceElement) {
                     sourceElement.remove();
@@ -323,7 +322,7 @@ async function loadExperiments(experimentConfigs) {
                 element.style.backgroundImage = `url('${imageUrl}')`;
                 element.style.backgroundRepeat = 'no-repeat';
                 element.style.backgroundPosition = 'center';
-                element.style.backgroundSize = 'contain';
+                element.style.backgroundSize = 'cover';
                 element.dataset.bg = "";
                 element.dataset.bgHidpi = "";
                 if (asset.copyType !== 'none') {
