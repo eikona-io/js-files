@@ -289,8 +289,10 @@ async function loadExperiments(experimentConfigs) {
             const tagName = element.tagName.toLowerCase();
             const elementSize = getElementSizeOnScreen(element);
             // preserve the original image size
-            element.style.width = `${elementSize.width}px`;
-            element.style.height = `${elementSize.height}px`;
+            if (elementSize.width > 0 && elementSize.height > 0) {
+              element.style.width = `${elementSize.width}px`;
+              element.style.height = `${elementSize.height}px`;
+            }
             // change the element to the new image
             // each element type has a different way to change the image
             if (['img', 'div', 'video', 'section'].includes(tagName)) {
@@ -298,8 +300,10 @@ async function loadExperiments(experimentConfigs) {
                 if (asset.copyType !== 'none') {
                   const parentDiv = document.createElement('div');
                   parentDiv.style.position = 'relative';
-                  parentDiv.style.width = `${elementSize.width}px`;
-                  parentDiv.style.height = `${elementSize.height}px`;
+                  if (elementSize.width > 0 && elementSize.height > 0) {
+                    parentDiv.style.width = `${elementSize.width}px`;
+                    parentDiv.style.height = `${elementSize.height}px`;
+                  }
                   element.parentNode.insertBefore(parentDiv, element);
                   parentDiv.appendChild(element);
 
@@ -337,8 +341,10 @@ async function loadExperiments(experimentConfigs) {
                 img.alt = parentElement.getAttribute('alt') || '';
                 img.className = parentElement.className;
                 // preserve the original image size
-                img.style.width = `${elementSize.width}px`;
-                img.style.height = `${elementSize.height}px`;
+                if (elementSize.width > 0 && elementSize.height > 0) {
+                  img.style.width = `${elementSize.width}px`;
+                  img.style.height = `${elementSize.height}px`;
+                }
                 if (parentElement.tagName.toLowerCase() === 'video-section') {
                   // Replace the video-section with an image
                   parentElement.parentNode.replaceChild(img, parentElement);
