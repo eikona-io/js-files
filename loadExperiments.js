@@ -296,28 +296,28 @@ async function loadExperiments(experimentConfigs) {
             if (['img', 'div', 'video', 'section'].includes(tagName)) {
               if (tagName === 'img') {
                 if (asset.copyType !== 'none') {
-                    const parentDiv = document.createElement('div');
-                    parentDiv.style.position = 'relative';
-                    parentDiv.style.width = `${elementSize.width}px`;
-                    parentDiv.style.height = `${elementSize.height}px`;
-                    element.parentNode.insertBefore(parentDiv, element);
-                    parentDiv.appendChild(element);
+                  const parentDiv = document.createElement('div');
+                  parentDiv.style.position = 'relative';
+                  parentDiv.style.width = `${elementSize.width}px`;
+                  parentDiv.style.height = `${elementSize.height}px`;
+                  element.parentNode.insertBefore(parentDiv, element);
+                  parentDiv.appendChild(element);
 
-                    const copyDiv = document.createElement('div');
-                    copyDiv.style.position = 'absolute';
-                    copyDiv.style.top = '0';
-                    copyDiv.style.left = '0';
-                    copyDiv.style.width = '100%';
-                    copyDiv.style.height = '100%';
-                    parentDiv.appendChild(copyDiv);
-                    addCopy(copyDiv, asset);
+                  const copyDiv = document.createElement('div');
+                  copyDiv.style.position = 'absolute';
+                  copyDiv.style.top = '0';
+                  copyDiv.style.left = '0';
+                  copyDiv.style.width = '100%';
+                  copyDiv.style.height = '100%';
+                  parentDiv.appendChild(copyDiv);
+                  addCopy(copyDiv, asset);
                 }
                 element.src = imageUrl;
                 element.srcset = "";
                 element.style.objectFit = 'cover';
                 const sourceElement = element.parentElement.querySelector('source');
                 if (sourceElement) {
-                    sourceElement.remove();
+                  sourceElement.remove();
                 }
               } else if (tagName === 'div' || tagName === 'section') {
                 element.style.backgroundImage = `url('${imageUrl}')`;
@@ -495,10 +495,10 @@ export function createBanner(divElement, options = {}) {
     textFont = 'Gotham, sans-serif',
     textShadowStrength = 0.7,
   } = options;
-  
+
   // divElement.style.position = 'relative';
   divElement.style.overflow = 'hidden';
-  
+
   const textShadow = `-10px 10px 20px rgba(0, 0, 0, ${textShadowStrength})`;
   const subTextShadow = `-5px 5px 10px rgba(0, 0, 0, ${textShadowStrength})`;
   const shapeOverlay = document.createElement('div');
@@ -514,6 +514,8 @@ export function createBanner(divElement, options = {}) {
   shapeOverlay.style.justifyContent = 'center';
   shapeOverlay.style.fontFamily = textFont;
   shapeOverlay.style.fontWeight = 'bold';
+
+  const centeredTextContainerWidth = isMobile ? '95%' : '60%';
 
   let clipPath;
   let textContainerStyle = {};
@@ -544,7 +546,7 @@ export function createBanner(divElement, options = {}) {
       break;
     case 'centered':
       clipPath = '';
-      textContainerStyle = { top: '50%', left: '50%', transform: 'translate(-50%, -50%)', width: '95%', height: '100%' };
+      textContainerStyle = { top: '50%', left: '50%', transform: 'translate(-50%, -50%)', width: centeredTextContainerWidth, height: '100%' };
       break;
     case 'aligned-left':
       clipPath = '';
@@ -556,11 +558,11 @@ export function createBanner(divElement, options = {}) {
       break;
     case 'bottom-center':
       clipPath = '';
-      textContainerStyle = { top: '80%', left: '50%', transform: 'translate(-50%, -50%)', width: '95%', height: '100%' };
+      textContainerStyle = { top: '80%', left: '50%', transform: 'translate(-50%, -50%)', width: centeredTextContainerWidth, height: '100%' };
       break;
     case 'top-center':
       clipPath = '';
-      textContainerStyle = { top: '20%', left: '50%', transform: 'translate(-50%, -50%)', width: '95%', height: '100%' };
+      textContainerStyle = { top: '20%', left: '50%', transform: 'translate(-50%, -50%)', width: centeredTextContainerWidth, height: '100%' };
       break;
     default:
       clipPath = '';
