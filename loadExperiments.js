@@ -544,7 +544,7 @@ export function createBanner(divElement, options = {}) {
       break;
     case 'centered':
       clipPath = '';
-      textContainerStyle = { top: '50%', left: '50%', transform: 'translate(-50%, -50%)', width: '60%', height: '100%' };
+      textContainerStyle = { top: '50%', left: '50%', transform: 'translate(-50%, -50%)', width: '80%', height: '100%' };
       break;
     case 'aligned-left':
       clipPath = '';
@@ -556,11 +556,11 @@ export function createBanner(divElement, options = {}) {
       break;
     case 'bottom-center':
       clipPath = '';
-      textContainerStyle = { top: '80%', left: '50%', transform: 'translate(-50%, -50%)', width: '60%', height: '100%' };
+      textContainerStyle = { top: '80%', left: '50%', transform: 'translate(-50%, -50%)', width: '80%', height: '100%' };
       break;
     case 'top-center':
       clipPath = '';
-      textContainerStyle = { top: '20%', left: '50%', transform: 'translate(-50%, -50%)', width: '60%', height: '100%' };
+      textContainerStyle = { top: '20%', left: '50%', transform: 'translate(-50%, -50%)', width: '80%', height: '100%' };
       break;
     default:
       clipPath = '';
