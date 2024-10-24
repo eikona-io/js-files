@@ -59,17 +59,15 @@ async function fetchExperimentAssets(experimentId) {
  */
 export function initializeAndLoadExperiments(posthogToken, sanityProjectId, experimentConfigs, dataset = 'production', enableLogging = false) {
   logger = enableLogging ? console.log.bind(console) : () => { };
+  // Initialize PostHog
+  posthog.init(posthogToken, { api_host: 'https://ph.eikona.io', person_profiles: 'always', enable_heatmaps: true });
+  // Initialize Sanity
+  initializeSanity(sanityProjectId, dataset);
 
   // Function to load experiments
   function loadExperimentsWhenReady() {
     logger('Loading experiments...');
     try {
-      // Initialize PostHog
-      posthog.init(posthogToken, { api_host: 'https://ph.eikona.io', person_profiles: 'always', enable_heatmaps: true });
-
-      // Initialize Sanity
-      initializeSanity(sanityProjectId, dataset);
-
       loadExperiments(experimentConfigs);
     } catch (error) {
       logger('Error initializing or loading experiments:', error);
