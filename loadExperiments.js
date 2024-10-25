@@ -485,6 +485,7 @@ function evaluateXPathManually(xpath) {
  * @param {string} options.textFont - The text font of the banner
  * @param {string} options.textShadow - The text shadow of the banner
  * @param {string} options.subTextShadow - The subtext shadow of the banner
+ * @param {Array} options.buttons - Array of button configurations (up to 2)
  */
 export function createBanner(divElement, options = {}) {
   const {
@@ -498,6 +499,7 @@ export function createBanner(divElement, options = {}) {
     subTextSize = '2.5vh',
     textFont = 'Gotham, sans-serif',
     textShadowStrength = 0.7,
+    buttons = []
   } = options;
 
   // divElement.style.position = 'relative';
@@ -618,6 +620,59 @@ export function createBanner(divElement, options = {}) {
 
   textContainer.appendChild(textElement);
   textContainer.appendChild(subTextElement);
+
+  // Add buttons
+  if (buttons.length > 0) {
+    const buttonContainer = document.createElement('div');
+    Object.assign(buttonContainer.style, {
+      display: 'flex',
+      justifyContent: 'center',
+      alignItems: 'center',
+      marginTop: '7vh',
+      gap: '1vw'
+    });
+
+    buttons.slice(0, 2).forEach(buttonConfig => {
+      const button = document.createElement('button');
+      button.innerText = buttonConfig.text || 'Button';
+      const defaultStyle = {
+        backgroundColor: buttonConfig.color || '#ffffff',
+        color: buttonConfig.textColor || '#000000',
+        fontSize: buttonConfig.textSize || '16px',
+        padding: buttonConfig.padding || '10px 20px',
+        border: 'none',
+        borderRadius: buttonConfig.edgesRadius || '4px',
+        cursor: 'pointer',
+        fontWeight: 'bold',
+        textDecoration: 'none',
+        display: 'inline-block',
+        textAlign: 'center',
+        width: buttonConfig.width || 'auto',
+        height: buttonConfig.height || 'auto',
+        transition: 'background-color 0.3s, color 0.3s'
+      };
+      Object.assign(button.style, defaultStyle);
+
+      const hoverOpacity = 0.8; // 20% darker on hover
+
+      button.addEventListener('mouseover', () => {
+        button.style.opacity = hoverOpacity;
+      });
+
+      button.addEventListener('mouseout', () => {
+        button.style.opacity = '1';
+      });
+
+      if (buttonConfig.onClick && typeof buttonConfig.onClick === 'function') {
+        button.addEventListener('click', buttonConfig.onClick);
+      }
+
+      buttonContainer.appendChild(button);
+    });
+
+    textContainer.appendChild(buttonContainer);
+  }
+
   shapeOverlay.appendChild(textContainer);
   divElement.appendChild(shapeOverlay);
 }

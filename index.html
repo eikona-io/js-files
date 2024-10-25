@@ -31,13 +31,33 @@
 
     // Call the createBanner function
     createBanner(divElement, {
-        shape: 'bottom-center', // Options: 'right-diagonal', 'left-diagonal', 'top-circle', 'bottom-circle', 'left-rectangle', 'right-rectangle', 'centered', 'aligned-left', 'aligned-right'
+        shape: 'left-diagonal',
         text: 'Personalized Attention, Exceptional Service',
         subText: 'Whether you design it yourself or need a helping hand, we\'re here to bring your vision to life.',
         textColor: '#ffffff',
         shapeColor: '#6ea99e',
-        textSize: '3vh',
-        subTextSize: '1.5vh'
+        textSize: '5vh',
+        subTextSize: '2.5vh',
+        buttons: [
+            {
+                text: 'Design Now',
+                color: '#ffffff',
+                textColor: '#6ea99e',
+                textSize: '2vh',
+                padding: '10px 20px',
+                edgesRadius: '4px',
+                onClick: () => console.log('Design Now clicked')
+            },
+            {
+                text: 'Learn More',
+                color: '#ffffff',
+                textColor: '#6ea99e',
+                textSize: '2vh',
+                padding: '10px 20px',
+                edgesRadius: '4px',
+                onClick: () => console.log('Learn More clicked')
+            }
+        ]
     });
 </script>
 
