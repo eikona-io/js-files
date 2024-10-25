@@ -486,6 +486,15 @@ function evaluateXPathManually(xpath) {
  * @param {string} options.textShadow - The text shadow of the banner
  * @param {string} options.subTextShadow - The subtext shadow of the banner
  * @param {Array} options.buttons - Array of button configurations (up to 2)
+ * @param {Object} options.buttons[].text - The text to display on the button
+ * @param {string} options.buttons[].color - The background color of the button
+ * @param {string} options.buttons[].textColor - The color of the button text
+ * @param {string} options.buttons[].textSize - The font size of the button text
+ * @param {string} options.buttons[].padding - The padding around the button text
+ * @param {string} options.buttons[].edgesRadius - The border radius of the button
+ * @param {string} options.buttons[].width - The width of the button (default is 'auto')
+ * @param {string} options.buttons[].height - The height of the button
+ * @param {string} options.buttons[].onClick - The path to navigate to when the button is clicked
  */
 export function createBanner(divElement, options = {}) {
   const {
@@ -675,8 +684,10 @@ export function createBanner(divElement, options = {}) {
         button.style.opacity = '1';
       });
 
-      if (buttonConfig.onClick && typeof buttonConfig.onClick === 'function') {
-        button.addEventListener('click', buttonConfig.onClick);
+      if (buttonConfig.onClick && typeof buttonConfig.onClick === 'string') {
+        button.addEventListener('click', () => {
+          window.location.href = buttonConfig.onClick;
+        });
       }
 
       buttonContainer.appendChild(button);
