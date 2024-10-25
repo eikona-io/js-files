@@ -650,7 +650,8 @@ export function createBanner(divElement, options = {}) {
       justifyContent: 'center',
       alignItems: 'center',
       width: '100%',
-      zIndex: '100',
+      zIndex: '1000',  // Increased z-index to ensure it's above other elements
+      position: 'relative',  // Added to create a new stacking context
       ...buttonContainerStyle
     });
 
@@ -671,8 +672,10 @@ export function createBanner(divElement, options = {}) {
         textAlign: 'center',
         width: buttonConfig.width || 'auto',
         height: buttonConfig.height || 'auto',
-        transition: 'background-color 0.3s, color 0.3s',
-        zIndex: '1000'  // Ensure buttons are on top
+        transition: 'background-color 0.3s, color 0.3s, opacity 0.3s',
+        zIndex: '1001',  // Ensure buttons are on top of the container
+        position: 'relative',  // Added to create a new stacking context
+        pointerEvents: 'auto'  // Ensure clicks are captured
       };
       Object.assign(button.style, defaultStyle);
 
@@ -686,10 +689,18 @@ export function createBanner(divElement, options = {}) {
         button.style.opacity = '1';
       });
 
-      if (buttonConfig.onClick && typeof buttonConfig.onClick === 'string') {
-        button.addEventListener('click', () => {
-          window.location.href = buttonConfig.onClick;
-        });
+      if (buttonConfig.onClick) {
+        if (typeof buttonConfig.onClick === 'string') {
+          button.addEventListener('click', (e) => {
+            e.stopPropagation();  // Prevent event from bubbling up
+            window.location.href = buttonConfig.onClick;
+          });
+        } else if (typeof buttonConfig.onClick === 'function') {
+          button.addEventListener('click', (e) => {
+            e.stopPropagation();  // Prevent event from bubbling up
+            buttonConfig.onClick();
+          });
+        }
       }
 
       buttonContainer.appendChild(button);
