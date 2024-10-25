@@ -554,7 +554,7 @@ export function createBanner(divElement, options = {}) {
     case 'bottom-circle':
       clipPath = 'ellipse(57% 16.67% at 50% 92%)';
       textContainerStyle = { bottom: '4%', left: '15%', width: '70%', height: '18%' };
-      buttonContainerStyle = { position: 'absolute', top: '3vh', left: '50%', transform: 'translateX(-50%)', gap: '5vw' };
+      buttonContainerStyle = { position: 'absolute', top: '30vh', left: '50%', transform: 'translateX(-50%)', gap: '5vw' };
       break;
     case 'left-rectangle':
       clipPath = 'polygon(0% 0%, 35% 0%, 35% 100%, 0% 100%)';
