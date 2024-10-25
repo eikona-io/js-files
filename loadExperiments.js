@@ -650,6 +650,7 @@ export function createBanner(divElement, options = {}) {
       justifyContent: 'center',
       alignItems: 'center',
       width: '100%',
+      zIndex: '100',
       ...buttonContainerStyle
     });
 
