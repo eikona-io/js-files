@@ -133,6 +133,7 @@ const addCopy = (div, asset) => {
     subTextSize: isMobile ? asset.copySubtextSizeMobile : asset.copySubtextSize,
     textFont: asset.copyFont,
     textShadowStrength: asset.copyTextShadowStrength,
+    buttons: asset.buttons,
   });
 }
 
