@@ -604,6 +604,7 @@ export function createBanner(divElement, options = {}) {
     alignItems: 'center',
     justifyContent: 'center',
     overflow: 'hidden',
+    zIndex: '100',
     ...textContainerStyle
   });
 
