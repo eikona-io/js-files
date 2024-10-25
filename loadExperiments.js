@@ -672,7 +672,7 @@ export function createBanner(divElement, options = {}) {
         width: buttonConfig.width || 'auto',
         height: buttonConfig.height || 'auto',
         transition: 'background-color 0.3s, color 0.3s',
-        zIndex: '10'  // Ensure buttons are on top
+        zIndex: '1000'  // Ensure buttons are on top
       };
       Object.assign(button.style, defaultStyle);
 
