@@ -502,7 +502,6 @@ export function createBanner(divElement, options = {}) {
     buttons = []
   } = options;
 
-  // divElement.style.position = 'relative';
   divElement.style.overflow = 'hidden';
 
   const textShadow = `-10px 10px 20px rgba(0, 0, 0, ${textShadowStrength})`;
@@ -525,50 +524,62 @@ export function createBanner(divElement, options = {}) {
 
   let clipPath;
   let textContainerStyle = {};
+  let buttonContainerStyle = {};
   switch (shape) {
     case 'right-diagonal':
       clipPath = `polygon(75% 0%, 100% 0%, 100% 100%, 60% 100%)`;
       textContainerStyle = { right: '0', width: '30%', height: '100%' };
+      buttonContainerStyle = { marginTop: '2vh', gap: '1.5vw' };
       break;
     case 'left-diagonal':
       clipPath = `polygon(0% 0%, 25% 0%, 40% 100%, 0% 100%)`;
       textContainerStyle = { left: '0', width: '30%', height: '100%' };
+      buttonContainerStyle = { marginTop: '7vh', gap: '1.5vw' };
       break;
     case 'top-circle':
       clipPath = 'ellipse(57% 16.67% at 50% 5%)';
       textContainerStyle = { top: '1%', left: '15%', width: '70%', height: '18%' };
+      buttonContainerStyle = { position: 'absolute', bottom: '3vh', left: '50%', transform: 'translateX(-50%)', gap: '5vw' };
       break;
     case 'bottom-circle':
       clipPath = 'ellipse(57% 16.67% at 50% 92%)';
       textContainerStyle = { bottom: '4%', left: '15%', width: '70%', height: '18%' };
+      buttonContainerStyle = { position: 'absolute', top: '3vh', left: '50%', transform: 'translateX(-50%)', gap: '5vw' };
       break;
     case 'left-rectangle':
       clipPath = 'polygon(0% 0%, 35% 0%, 35% 100%, 0% 100%)';
       textContainerStyle = { left: '0', width: '35%', height: '100%' };
+      buttonContainerStyle = { marginTop: '2vh', gap: '1vw' };
       break;
     case 'right-rectangle':
       clipPath = 'polygon(65% 0%, 100% 0%, 100% 100%, 65% 100%)';
       textContainerStyle = { right: '0', width: '35%', height: '100%' };
+      buttonContainerStyle = { marginTop: '2vh', gap: '1vw' };
       break;
     case 'centered':
       clipPath = '';
       textContainerStyle = { top: '50%', left: '50%', transform: 'translate(-50%, -50%)', width: centeredTextContainerWidth, height: '100%' };
+      buttonContainerStyle = { marginTop: '2vh', gap: '1vw' };
       break;
     case 'aligned-left':
       clipPath = '';
       textContainerStyle = { top: '50%', left: '0%', transform: 'translate(5%, -50%)', width: '40%', height: '100%' };
+      buttonContainerStyle = { marginTop: '2vh', gap: '1vw' };
       break;
     case 'aligned-right':
       clipPath = '';
       textContainerStyle = { top: '50%', left: '100%', transform: 'translate(-105%, -50%)', width: '40%', height: '100%' };
+      buttonContainerStyle = { marginTop: '2vh', gap: '1vw' };
       break;
     case 'bottom-center':
       clipPath = '';
       textContainerStyle = { top: '80%', left: '50%', transform: 'translate(-50%, -50%)', width: centeredTextContainerWidth, height: '100%' };
+      buttonContainerStyle = { position: 'absolute', top: '-10vh', left: '50%', transform: 'translateX(-50%)', gap: '1vw' };
       break;
     case 'top-center':
       clipPath = '';
       textContainerStyle = { top: '20%', left: '50%', transform: 'translate(-50%, -50%)', width: centeredTextContainerWidth, height: '100%' };
+      buttonContainerStyle = { position: 'absolute', bottom: '-10vh', left: '50%', transform: 'translateX(-50%)', gap: '1vw' };
       break;
     default:
       clipPath = '';
@@ -598,7 +609,7 @@ export function createBanner(divElement, options = {}) {
     width: '99%',
     wordWrap: 'break-word',
     overflowWrap: 'break-word',
-    lineHeight: textSize, // Adjust line height relative to the font size
+    lineHeight: textSize,
     marginBottom: textSize * 0.9
   });
 
@@ -628,8 +639,8 @@ export function createBanner(divElement, options = {}) {
       display: 'flex',
       justifyContent: 'center',
       alignItems: 'center',
-      marginTop: '7vh',
-      gap: '1vw'
+      width: '100%',
+      ...buttonContainerStyle
     });
 
     buttons.slice(0, 2).forEach(buttonConfig => {
@@ -649,11 +660,12 @@ export function createBanner(divElement, options = {}) {
         textAlign: 'center',
         width: buttonConfig.width || 'auto',
         height: buttonConfig.height || 'auto',
-        transition: 'background-color 0.3s, color 0.3s'
+        transition: 'background-color 0.3s, color 0.3s',
+        zIndex: '10'  // Ensure buttons are on top
       };
       Object.assign(button.style, defaultStyle);
 
-      const hoverOpacity = 0.8; // 20% darker on hover
+      const hoverOpacity = 0.8;
 
       button.addEventListener('mouseover', () => {
         button.style.opacity = hoverOpacity;
@@ -670,7 +682,11 @@ export function createBanner(divElement, options = {}) {
       buttonContainer.appendChild(button);
     });
 
-    textContainer.appendChild(buttonContainer);
+    if (['top-circle', 'bottom-circle', 'bottom-center', 'top-center'].includes(shape)) {
+      divElement.appendChild(buttonContainer);
+    } else {
+      textContainer.appendChild(buttonContainer);
+    }
   }
 
   shapeOverlay.appendChild(textContainer);
