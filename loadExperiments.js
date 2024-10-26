@@ -474,40 +474,30 @@ function evaluateXPathManually(xpath) {
 
 /*********************************** BANNER STYLING ********************************************/
 // set pointer events to none for overlapping elements with our buttons
-function setPointerEventsNone(element) {
-  const rect = element.getBoundingClientRect();
-  const overlappingElements = [];
+function setPointerEventsNone(buttonContainer) {
+  const buttons = buttonContainer.querySelectorAll('button');
+  const allElements = document.body.getElementsByTagName('*');
 
-  // Check each corner and the center of the element
-  const points = [
-    { x: rect.left, y: rect.top },
-    { x: rect.right, y: rect.top },
-    { x: rect.left, y: rect.bottom },
-    { x: rect.right, y: rect.bottom },
-    { x: rect.left + rect.width / 2, y: rect.top + rect.height / 2 }
-  ];
+  buttons.forEach(button => {
+    const buttonRect = button.getBoundingClientRect();
 
-  points.forEach(point => {
-    const elements = document.elementsFromPoint(point.x, point.y);
-    elements.forEach(el => {
-      if (el !== element && el !== document.body && el !== document.documentElement && !overlappingElements.includes(el)) {
-        overlappingElements.push(el);
+    Array.from(allElements).forEach(el => {
+      if (el !== button && !buttonContainer.contains(el) && !el.contains(buttonContainer)) {
+        const elRect = el.getBoundingClientRect();
+        if (rectsOverlap(buttonRect, elRect)) {
+          el.style.pointerEvents = 'none';
+        }
       }
     });
   });
-
-  // Check if the overlapping elements truly intersect
-  overlappingElements.forEach(el => {
-    const elRect = el.getBoundingClientRect();
-    if (!(rect.left > elRect.right || 
-          rect.right < elRect.left || 
-          rect.top > elRect.bottom ||
-          rect.bottom < elRect.top)) {
-      el.style.pointerEvents = 'none';
-    }
-  });
 }
 
+function rectsOverlap(rect1, rect2) {
+  return !(rect1.right < rect2.left || 
+           rect1.left > rect2.right || 
+           rect1.bottom < rect2.top || 
+           rect1.top > rect2.bottom);
+}
 
 /**
  * Create a banner with the given shape and text
@@ -759,3 +749,4 @@ export function createBanner(divElement, options = {}) {
     setPointerEventsNone(buttonContainer);
   }
 }
+
