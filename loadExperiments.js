@@ -471,6 +471,21 @@ function evaluateXPathManually(xpath) {
   return currentElements;
 }
 
+
+/*********************************** BANNER STYLING ********************************************/
+// set pointer events to none for overlapping elements with our buttons
+function setPointerEventsNone(element) {
+  const rect = element.getBoundingClientRect();
+  const elements = document.elementsFromPoint(rect.left + rect.width / 2, rect.top + rect.height / 2);
+  
+  elements.forEach(el => {
+    if (el !== element && el !== document.body && el !== document.documentElement) {
+      el.style.pointerEvents = 'none';
+    }
+  });
+}
+
+
 /**
  * Create a banner with the given shape and text
  * @param {HTMLElement} divElement - The div element to create the banner on
@@ -716,4 +731,8 @@ export function createBanner(divElement, options = {}) {
 
   shapeOverlay.appendChild(textContainer);
   divElement.appendChild(shapeOverlay);
+
+  buttons.forEach(button => {
+    setPointerEventsNone(button);
+  });
 }
