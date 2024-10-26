@@ -479,6 +479,8 @@ function setPointerEventsNone(buttonContainer) {
   let currentElement = buttonContainer.parentElement;
   let levelsUp = 0;
 
+  // search up to 10 levels up for overlapping elements
+  // TODO: omerh - change this, its bad
   while (currentElement && levelsUp < 10) {
     if (currentElement !== buttonContainer && !buttonContainer.contains(currentElement)) {
       const currentRect = currentElement.getBoundingClientRect();
