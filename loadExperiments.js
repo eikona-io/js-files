@@ -650,9 +650,9 @@ export function createBanner(divElement, options = {}) {
       justifyContent: 'center',
       alignItems: 'center',
       width: '100%',
-      zIndex: '1000',  // Increased z-index to ensure it's above other elements
-      position: 'relative',  // Added to create a new stacking context
-      pointerEvents: 'auto',  // Ensure the container allows interactions
+      zIndex: '10000',
+      position: 'relative',
+      pointerEvents: 'none',
       ...buttonContainerStyle
     });
 
@@ -674,9 +674,9 @@ export function createBanner(divElement, options = {}) {
         width: buttonConfig.width || 'auto',
         height: buttonConfig.height || 'auto',
         transition: 'background-color 0.3s, color 0.3s, opacity 0.3s',
-        zIndex: '1001',  // Ensure buttons are on top of the container
-        position: 'relative',  // Added to create a new stacking context
-        pointerEvents: 'auto'  // Ensure clicks are captured
+        zIndex: '10001',  // Ensure buttons are on top of the container
+        position: 'relative',
+        pointerEvents: 'auto'
       };
       Object.assign(button.style, defaultStyle);
 
