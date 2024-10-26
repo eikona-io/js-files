@@ -658,8 +658,9 @@ export function createBanner(divElement, options = {}) {
   textContainer.appendChild(subTextElement);
 
   // Add buttons
+  let buttonContainer;
   if (buttons.length > 0) {
-    const buttonContainer = document.createElement('div');
+    buttonContainer = document.createElement('div');
     Object.assign(buttonContainer.style, {
       display: 'flex',
       justifyContent: 'center',
@@ -732,6 +733,6 @@ export function createBanner(divElement, options = {}) {
   shapeOverlay.appendChild(textContainer);
   divElement.appendChild(shapeOverlay);
   if (buttons.length > 0) {
-    // setPointerEventsNone(divElement);
+    setPointerEventsNone(buttonContainer);
   }
 }
