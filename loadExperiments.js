@@ -475,21 +475,20 @@ function evaluateXPathManually(xpath) {
 /*********************************** BANNER STYLING ********************************************/
 // set pointer events to none for overlapping elements with our buttons
 function setPointerEventsNone(buttonContainer) {
-  const buttons = buttonContainer.querySelectorAll('button');
-  const allElements = document.body.getElementsByTagName('*');
+  const buttonRect = buttonContainer.getBoundingClientRect();
+  let currentElement = buttonContainer.parentElement;
+  let levelsUp = 0;
 
-  buttons.forEach(button => {
-    const buttonRect = button.getBoundingClientRect();
-
-    Array.from(allElements).forEach(el => {
-      if (el !== button && !buttonContainer.contains(el) && !el.contains(buttonContainer)) {
-        const elRect = el.getBoundingClientRect();
-        if (rectsOverlap(buttonRect, elRect)) {
-          el.style.pointerEvents = 'none';
-        }
+  while (currentElement && levelsUp < 10) {
+    if (currentElement !== buttonContainer && !buttonContainer.contains(currentElement)) {
+      const currentRect = currentElement.getBoundingClientRect();
+      if (rectsOverlap(buttonRect, currentRect)) {
+        currentElement.style.pointerEvents = 'none';
       }
-    });
-  });
+    }
+    currentElement = currentElement.parentElement;
+    levelsUp++;
+  }
 }
 
 function rectsOverlap(rect1, rect2) {
@@ -749,4 +748,5 @@ export function createBanner(divElement, options = {}) {
     setPointerEventsNone(buttonContainer);
   }
 }
+
 
