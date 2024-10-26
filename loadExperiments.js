@@ -651,7 +651,7 @@ export function createBanner(divElement, options = {}) {
       alignItems: 'center',
       width: '100%',
       zIndex: '10000',
-      position: 'relative',
+      position: 'absolute',
       pointerEvents: 'none',
       ...buttonContainerStyle
     });
