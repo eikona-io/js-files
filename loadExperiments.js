@@ -484,7 +484,7 @@ function setPointerEventsNone(buttonContainer) {
   while (currentElement && levelsUp < 10) {
     if (currentElement !== buttonContainer && !buttonContainer.contains(currentElement)) {
       const currentRect = currentElement.getBoundingClientRect();
-      if (rectsOverlap(buttonRect, currentRect)) {
+      if (rectsOverlap(buttonRect, currentRect, 5)) {
         currentElement.style.pointerEvents = 'none';
       }
     }
@@ -493,11 +493,11 @@ function setPointerEventsNone(buttonContainer) {
   }
 }
 
-function rectsOverlap(rect1, rect2) {
-  return !(rect1.right < rect2.left || 
-           rect1.left > rect2.right || 
-           rect1.bottom < rect2.top || 
-           rect1.top > rect2.bottom);
+function rectsOverlap(rect1, rect2, tolerance = 5) {
+  return !(rect1.right < rect2.left - tolerance || 
+           rect1.left > rect2.right + tolerance || 
+           rect1.bottom < rect2.top - tolerance || 
+           rect1.top > rect2.bottom + tolerance);
 }
 
 /**
@@ -672,9 +672,8 @@ export function createBanner(divElement, options = {}) {
   textContainer.appendChild(subTextElement);
 
   // Add buttons
-  let buttonContainer;
   if (buttons.length > 0) {
-    buttonContainer = document.createElement('div');
+    const buttonContainer = document.createElement('div');
     Object.assign(buttonContainer.style, {
       display: 'flex',
       justifyContent: 'center',
@@ -747,7 +746,7 @@ export function createBanner(divElement, options = {}) {
   shapeOverlay.appendChild(textContainer);
   divElement.appendChild(shapeOverlay);
   if (buttons.length > 0) {
-    setPointerEventsNone(buttonContainer);
+    setPointerEventsNone(divElement);
   }
 }
 
