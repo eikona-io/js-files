@@ -493,11 +493,11 @@ function setPointerEventsNone(buttonContainer) {
   }
 }
 
-function rectsOverlap(rect1, rect2, tolerance = 5) {
-  return !(rect1.right < rect2.left - tolerance || 
-           rect1.left > rect2.right + tolerance || 
-           rect1.bottom < rect2.top - tolerance || 
-           rect1.top > rect2.bottom + tolerance);
+function rectsOverlap(rect1, rect2, tolerance = 0) {
+  return (Math.abs(rect1.left - rect2.left) <= tolerance &&
+          Math.abs(rect1.right - rect2.right) <= tolerance &&
+          Math.abs(rect1.top - rect2.top) <= tolerance &&
+          Math.abs(rect1.bottom - rect2.bottom) <= tolerance);
 }
 
 /**
