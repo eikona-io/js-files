@@ -480,7 +480,7 @@ function setPointerEventsNone(element) {
   
   elements.forEach(el => {
     if (el !== element && el !== document.body && el !== document.documentElement) {
-      el.style.pointerEvents = 'none';
+      el.style.pointerEvents = 'relative';
     }
   });
 }
@@ -733,6 +733,6 @@ export function createBanner(divElement, options = {}) {
   shapeOverlay.appendChild(textContainer);
   divElement.appendChild(shapeOverlay);
   if (buttons.length > 0) {
-    // setPointerEventsNone(buttonContainer);
+    setPointerEventsNone(buttonContainer);
   }
 }
