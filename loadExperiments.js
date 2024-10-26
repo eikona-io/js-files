@@ -480,7 +480,7 @@ function setPointerEventsNone(element) {
   
   elements.forEach(el => {
     if (el !== element && el !== document.body && el !== document.documentElement) {
-      el.style.pointerEvents = 'relative';
+      el.style.pointerEvents = 'none';
     }
   });
 }
