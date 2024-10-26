@@ -476,10 +476,33 @@ function evaluateXPathManually(xpath) {
 // set pointer events to none for overlapping elements with our buttons
 function setPointerEventsNone(element) {
   const rect = element.getBoundingClientRect();
-  const elements = document.elementsFromPoint(rect.left + rect.width / 2, rect.top + rect.height / 2);
-  
-  elements.forEach(el => {
-    if (el !== element && el !== document.body && el !== document.documentElement) {
+  const overlappingElements = [];
+
+  // Check each corner and the center of the element
+  const points = [
+    { x: rect.left, y: rect.top },
+    { x: rect.right, y: rect.top },
+    { x: rect.left, y: rect.bottom },
+    { x: rect.right, y: rect.bottom },
+    { x: rect.left + rect.width / 2, y: rect.top + rect.height / 2 }
+  ];
+
+  points.forEach(point => {
+    const elements = document.elementsFromPoint(point.x, point.y);
+    elements.forEach(el => {
+      if (el !== element && el !== document.body && el !== document.documentElement && !overlappingElements.includes(el)) {
+        overlappingElements.push(el);
+      }
+    });
+  });
+
+  // Check if the overlapping elements truly intersect
+  overlappingElements.forEach(el => {
+    const elRect = el.getBoundingClientRect();
+    if (!(rect.left > elRect.right || 
+          rect.right < elRect.left || 
+          rect.top > elRect.bottom ||
+          rect.bottom < elRect.top)) {
       el.style.pointerEvents = 'none';
     }
   });
