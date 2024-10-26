@@ -652,6 +652,7 @@ export function createBanner(divElement, options = {}) {
       width: '100%',
       zIndex: '1000',  // Increased z-index to ensure it's above other elements
       position: 'relative',  // Added to create a new stacking context
+      pointerEvents: 'auto',  // Ensure the container allows interactions
       ...buttonContainerStyle
     });
 
