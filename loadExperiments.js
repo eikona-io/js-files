@@ -731,8 +731,7 @@ export function createBanner(divElement, options = {}) {
 
   shapeOverlay.appendChild(textContainer);
   divElement.appendChild(shapeOverlay);
-
-  // buttons.forEach(button => {
-  //   setPointerEventsNone(button);
-  // });
+  if (buttons.length > 0) {
+    setPointerEventsNone(divElement);
+  }
 }
