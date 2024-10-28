@@ -151,6 +151,17 @@ function prefetchImage(url) {
   });
 }
 
+function getExperimentVariant(experimentId) {
+  const metaVariant = posthog.getFeatureFlag(experimentId);
+  // feature flag payload might be the sub experiment id
+  const subExperimentId = posthog.getFeatureFlagPayload(metaVariant);
+  if (subExperimentId && subExperimentId['sub-experiment-id']) {
+    return posthog.getFeatureFlag(subExperimentId['sub-experiment-id']);
+  }
+  // no sub experiment
+  return metaVariant;
+}
+
 async function loadExperiments(experimentConfigs) {
   // Function to get feature flags as a Promise
   const getFeatureFlags = () => {
@@ -207,7 +218,7 @@ async function loadExperiments(experimentConfigs) {
     }
 
     // fetch variant key
-    const variant = posthog.getFeatureFlag(expId);
+    const variant = getExperimentVariant(expId);
     if (variant === undefined) {
       logger(`Experiment not found: ${expId}`);
       loadedExperiments++;
@@ -495,9 +506,9 @@ function setPointerEventsNone(buttonContainer) {
 
 function rectsOverlap(rect1, rect2, tolerance = 0) {
   return (Math.abs(rect1.left - rect2.left) <= tolerance &&
-          Math.abs(rect1.right - rect2.right) <= tolerance &&
-          Math.abs(rect1.top - rect2.top) <= tolerance &&
-          Math.abs(rect1.bottom - rect2.bottom) <= tolerance);
+    Math.abs(rect1.right - rect2.right) <= tolerance &&
+    Math.abs(rect1.top - rect2.top) <= tolerance &&
+    Math.abs(rect1.bottom - rect2.bottom) <= tolerance);
 }
 
 /**
@@ -605,8 +616,8 @@ export function createBanner(divElement, options = {}) {
       textContainerStyle = { top: '50%', left: '0%', transform: 'translate(5%, -50%)', width: '40%', height: '100%' };
       buttonContainerStyle = { marginTop: '5vh', gap: '1vw', alignItems: 'left', justifyContent: 'left', width: '92%' };
       break;
-      case 'aligned-right':
-        clipPath = '';
+    case 'aligned-right':
+      clipPath = '';
       textContainerStyle = { top: '50%', left: '100%', transform: 'translate(-105%, -50%)', width: '40%', height: '100%' };
       buttonContainerStyle = { marginTop: '5vh', gap: '1vw', alignItems: 'left', justifyContent: 'left', width: '92%' };
       break;
