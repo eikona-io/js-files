@@ -153,21 +153,18 @@ function prefetchImage(url) {
 
 
 function getSubExperimentId(experimentId) {
-  const metaVariant = posthog.getFeatureFlag(experimentId);
-  const subExperimentId = posthog.getFeatureFlagPayload(metaVariant);
+  const subExperimentId = posthog.getFeatureFlagPayload(experimentId);
   return subExperimentId && subExperimentId['sub-experiment-id'] ? subExperimentId['sub-experiment-id'] : null;
 }
 
 function getExperimentVariant(experimentId) {
-  const metaVariant = posthog.getFeatureFlag(experimentId);
-  // feature flag payload might be the sub experiment id
   const subExperimentId = getSubExperimentId(experimentId);
   if (subExperimentId) {
     logger('Sub experiment ID:', subExperimentId);
     return posthog.getFeatureFlag(subExperimentId);
   }
   // no sub experiment
-  return metaVariant;
+  return posthog.getFeatureFlag(experimentId);
 }
 
 async function loadExperiments(experimentConfigs) {
