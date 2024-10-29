@@ -167,9 +167,11 @@ function getExperimentVariant(experimentId) {
   // no sub experiment
   return posthog.getFeatureFlag(experimentId);
 }
-
 async function loadExperiments(experimentConfigs) {
-  // Function to get feature flags as a Promise
+  const currentPath = window.location.pathname;
+  const relevantExperiments = experimentConfigs.filter(config => config.sitePath === currentPath);
+
+  // Get feature flags first
   const getFeatureFlags = () => {
     return new Promise(resolve => {
       posthog.onFeatureFlags(() => {
@@ -177,14 +179,9 @@ async function loadExperiments(experimentConfigs) {
       });
     });
   };
-
-  // Start getting feature flags
-  const featureFlagsPromise = getFeatureFlags();
-
-  const currentPath = window.location.pathname;
-  const relevantExperiments = experimentConfigs.filter(config => config.sitePath === currentPath);
-
-  // Fetch experiment assets in parallel
+  await getFeatureFlags();
+  
+  // Now fetch experiment assets in parallel after flags are loaded
   const fetchAssetsPromises = relevantExperiments.map(config => {
     const subExperimentId = getSubExperimentId(config.expId);
     const expId = subExperimentId ? subExperimentId : config.expId;
@@ -192,10 +189,7 @@ async function loadExperiments(experimentConfigs) {
     return fetchExperimentAssets(expId).then(assets => ({ expId: config.expId, assets }));
   });
 
-  // Wait for both feature flags and experiment assets to be ready
-  // feature flags are needed to get the sub experiment id
-  // this is not ideal - and should be fixed in the future
-  await featureFlagsPromise();
+  // Wait for all assets to be fetched
   const assetsResults = await Promise.all(fetchAssetsPromises);
 
   // Map experiment IDs to their assets
