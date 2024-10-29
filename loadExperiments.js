@@ -151,12 +151,19 @@ function prefetchImage(url) {
   });
 }
 
+
+function getSubExperimentId(experimentId) {
+  const metaVariant = posthog.getFeatureFlag(experimentId);
+  const subExperimentId = posthog.getFeatureFlagPayload(metaVariant);
+  return subExperimentId && subExperimentId['sub-experiment-id'] ? subExperimentId['sub-experiment-id'] : null;
+}
+
 function getExperimentVariant(experimentId) {
   const metaVariant = posthog.getFeatureFlag(experimentId);
   // feature flag payload might be the sub experiment id
-  const subExperimentId = posthog.getFeatureFlagPayload(metaVariant);
-  if (subExperimentId && subExperimentId['sub-experiment-id']) {
-    return posthog.getFeatureFlag(subExperimentId['sub-experiment-id']);
+  const subExperimentId = getSubExperimentId(experimentId);
+  if (subExperimentId) {
+    return posthog.getFeatureFlag(subExperimentId);
   }
   // no sub experiment
   return metaVariant;
@@ -180,7 +187,9 @@ async function loadExperiments(experimentConfigs) {
 
   // Fetch experiment assets in parallel
   const fetchAssetsPromises = relevantExperiments.map(config => {
-    return fetchExperimentAssets(config.expId).then(assets => ({ expId: config.expId, assets }));
+    const subExperimentId = getSubExperimentId(config.expId);
+    const expId = subExperimentId ? subExperimentId : config.expId;
+    return fetchExperimentAssets(expId).then(assets => ({ expId, assets }));
   });
 
   // Wait for both feature flags and experiment assets to be ready
