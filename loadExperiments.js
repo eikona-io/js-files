@@ -195,7 +195,7 @@ async function loadExperiments(experimentConfigs) {
   // Wait for both feature flags and experiment assets to be ready
   // feature flags are needed to get the sub experiment id
   // this is not ideal - and should be fixed in the future
-  await featureFlagsPromise;
+  await featureFlagsPromise();
   const assetsResults = await Promise.all(fetchAssetsPromises);
 
   // Map experiment IDs to their assets
