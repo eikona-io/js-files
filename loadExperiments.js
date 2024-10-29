@@ -160,7 +160,7 @@ function getSubExperimentId(experimentId) {
 function getExperimentVariant(experimentId) {
   const subExperimentId = getSubExperimentId(experimentId);
   if (subExperimentId) {
-    logger('Sub experiment ID:', subExperimentId);
+    logger('Getting variant for sub experiment:', subExperimentId);
     return posthog.getFeatureFlag(subExperimentId);
   }
   // no sub experiment
@@ -187,6 +187,7 @@ async function loadExperiments(experimentConfigs) {
   const fetchAssetsPromises = relevantExperiments.map(config => {
     const subExperimentId = getSubExperimentId(config.expId);
     const expId = subExperimentId ? subExperimentId : config.expId;
+    logger('Fetching assets for experiment:', expId);
     return fetchExperimentAssets(expId).then(assets => ({ expId: config.expId, assets }));
   });
 
