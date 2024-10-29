@@ -32,7 +32,7 @@ function urlForImage(source, shape = null) {
 }
 
 async function fetchExperimentAssets(experimentId) {
-  const assets = await client.fetch(`*[_type == "experiment" && id match $id]`, { id: `${experimentId}` });
+  const assets = await client.fetch(`*[_type == "experiment" && id == $id]`, { id: `${experimentId}` });
   logger('Fetched assets for experiment:', experimentId, assets);
 
   // Prefetch images for all variants
