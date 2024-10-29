@@ -154,6 +154,7 @@ function prefetchImage(url) {
 
 function getSubExperimentId(experimentId) {
   const subExperimentId = posthog.getFeatureFlagPayload(experimentId);
+  logger('Sub experiment ID:', subExperimentId);
   return subExperimentId && subExperimentId['sub-experiment-id'] ? subExperimentId['sub-experiment-id'] : null;
 }
 
