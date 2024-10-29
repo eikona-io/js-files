@@ -196,6 +196,7 @@ async function loadExperiments(experimentConfigs) {
   // Map experiment IDs to their assets
   const assetsByExpId = {};
   for (const result of assetsResults) {
+    logger('Assets for experiment:', result.expId, result.assets);
     assetsByExpId[result.expId] = result.assets;
   }
 
