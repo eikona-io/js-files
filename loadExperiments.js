@@ -187,7 +187,7 @@ async function loadExperiments(experimentConfigs) {
   const fetchAssetsPromises = relevantExperiments.map(config => {
     const subExperimentId = getSubExperimentId(config.expId);
     const expId = subExperimentId ? subExperimentId : config.expId;
-    return fetchExperimentAssets(expId).then(assets => ({ config.expId, assets }));
+    return fetchExperimentAssets(expId).then(assets => ({ expId: config.expId, assets }));
   });
 
   // Wait for both feature flags and experiment assets to be ready
