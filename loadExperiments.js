@@ -163,6 +163,7 @@ function getExperimentVariant(experimentId) {
   // feature flag payload might be the sub experiment id
   const subExperimentId = getSubExperimentId(experimentId);
   if (subExperimentId) {
+    logger('Sub experiment ID:', subExperimentId);
     return posthog.getFeatureFlag(subExperimentId);
   }
   // no sub experiment
