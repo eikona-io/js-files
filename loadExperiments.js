@@ -55,12 +55,13 @@ async function fetchExperimentAssets(experimentId) {
  * @param {string[]} experimentConfigs - The experiment configurations
  * @param {string} dataset - The Sanity dataset
  * @param {boolean} enableLogging - Whether to enable logging
- * @param {boolean} resizeElements - Whether to resize elements according to their size on screen
+ * @param {string} domain - The domain to use for the reverse proxy
  */
-export function initializeAndLoadExperiments(posthogToken, sanityProjectId, experimentConfigs, dataset = 'production', enableLogging = false) {
+export function initializeAndLoadExperiments(posthogToken, sanityProjectId, experimentConfigs, dataset = 'production', enableLogging = false, domain = "www.eikona.io") {
   logger = enableLogging ? console.log.bind(console) : () => { };
-  // Initialize PostHog
-  posthog.init(posthogToken, { api_host: 'https://ph.eikona.io', person_profiles: 'always', enable_heatmaps: true });
+  // Setup reverse proxy for posthog
+  const apiHost = `https://ph.${domain.replace(/^www\./, '')}`;
+  posthog.init(posthogToken, { api_host: apiHost, person_profiles: 'always', enable_heatmaps: true });
   // Initialize Sanity
   initializeSanity(sanityProjectId, dataset);
 
