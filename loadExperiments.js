@@ -299,6 +299,8 @@ async function loadExperiments(experimentConfigs) {
     // process assets for the experiment and update the DOM
     for (const asset of experimentAssets) {
       const imageUrl = urlForImage(asset, variantKey);
+      // mobile assets are optional
+      const isMobileAsset = isMobile ? asset.hasOwnProperty(`${variantKey}_mobile`) : false;
       if (imageUrl) {
         const assetId = asset.id;
         logger('Processing asset:', assetId, 'for experiment:', expId);
@@ -311,7 +313,8 @@ async function loadExperiments(experimentConfigs) {
             const tagName = element.tagName.toLowerCase();
             const elementSize = getElementSizeOnScreen(element);
             // preserve the original image size
-            if (elementSize.width > 0 && elementSize.height > 0) {
+            // only if not a mobile asset
+            if (elementSize.width > 0 && elementSize.height > 0 && !isMobileAsset) {
               element.style.width = `${elementSize.width}px`;
               element.style.height = `${elementSize.height}px`;
             }
@@ -322,7 +325,7 @@ async function loadExperiments(experimentConfigs) {
                 if (asset.copyType !== 'none') {
                   const parentDiv = document.createElement('div');
                   parentDiv.style.position = 'relative';
-                  if (elementSize.width > 0 && elementSize.height > 0) {
+                  if (elementSize.width > 0 && elementSize.height > 0 && !isMobileAsset) {
                     parentDiv.style.width = `${elementSize.width}px`;
                     parentDiv.style.height = `${elementSize.height}px`;
                   }
@@ -349,7 +352,7 @@ async function loadExperiments(experimentConfigs) {
                 element.style.backgroundImage = `url('${imageUrl}')`;
                 element.style.backgroundRepeat = 'no-repeat';
                 element.style.backgroundPosition = 'center';
-                element.style.backgroundSize = 'cover';
+                element.style.backgroundSize = !isMobileAsset ? 'cover' : 'contain';
                 element.dataset.bg = "";
                 element.dataset.bgHidpi = "";
                 if (asset.copyType !== 'none') {
@@ -363,7 +366,7 @@ async function loadExperiments(experimentConfigs) {
                 img.alt = parentElement.getAttribute('alt') || '';
                 img.className = parentElement.className;
                 // preserve the original image size
-                if (elementSize.width > 0 && elementSize.height > 0) {
+                if (elementSize.width > 0 && elementSize.height > 0 && !isMobileAsset) {
                   img.style.width = `${elementSize.width}px`;
                   img.style.height = `${elementSize.height}px`;
                 }
