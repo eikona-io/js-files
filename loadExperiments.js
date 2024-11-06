@@ -24,7 +24,11 @@ function initializeSanity(projectId, dataset, apiVersion = '2024-01-01') {
   builder = imageUrlBuilder(client);
 }
 
-function urlForImage(source, shape = null) {
+function urlForImage(asset, variantKey, shape = null) {
+  const source = isMobile ? asset[`${variantKey}_mobile`] : asset[variantKey];
+  if (!source) {
+    return null;
+  }
   if (shape && shape.width !== 0 && shape.height !== 0) {
     return builder.image(source).auto('format').width(shape.width).height(shape.height).url()
   }
@@ -39,7 +43,7 @@ async function fetchExperimentAssets(experimentId) {
   assets.forEach(asset => {
     ['variant_a', 'variant_b', 'variant_c', 'variant_d'].forEach(variant => {
       if (asset[variant]) {
-        const imageUrl = urlForImage(asset[variant]);
+        const imageUrl = urlForImage(asset, variant);
         prefetchImage(imageUrl);
       }
     });
@@ -293,12 +297,11 @@ async function loadExperiments(experimentConfigs) {
 
     // process assets for the experiment and update the DOM
     for (const asset of experimentAssets) {
-      const variantAsset = asset[variantKey];
-      if (variantAsset) {
+      const imageUrl = urlForImage(asset, variantKey);
+      if (imageUrl) {
         const assetId = asset.id;
         logger('Processing asset:', assetId, 'for experiment:', expId);
         elements.forEach(element => {
-          const imageUrl = urlForImage(variantAsset);
           logger('Processing element:', element, 'for experiment:', expId);
           // check that we are changing the right element
           // (the experiments in the CMS have the same ID or alt text as the elements)
