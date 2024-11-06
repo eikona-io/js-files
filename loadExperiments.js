@@ -343,7 +343,7 @@ async function loadExperiments(experimentConfigs) {
                 }
                 element.src = imageUrl;
                 element.srcset = "";
-                element.style.objectFit = 'cover';
+                element.style.objectFit = !isMobileAsset ? 'cover' : 'contain';
                 const sourceElement = element.parentElement.querySelector('source');
                 if (sourceElement) {
                   sourceElement.remove();
