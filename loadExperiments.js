@@ -25,7 +25,8 @@ function initializeSanity(projectId, dataset, apiVersion = '2024-01-01') {
 }
 
 function urlForImage(asset, variantKey, shape = null) {
-  const source = isMobile ? asset[`${variantKey}_mobile`] : asset[variantKey];
+  const preferedVariant = isMobile ? `${variantKey}_mobile` : variantKey;
+  const source = asset[preferedVariant] ? asset[preferedVariant] : asset[variantKey];
   if (!source) {
     return null;
   }
