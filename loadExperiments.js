@@ -22,7 +22,8 @@ function urlForImage(asset, variantKey) {
   if (!source) {
     return null;
   }
-  return `${sanityCdnUrl}/${source}?auto=format`;
+  const imageId = source.asset['_ref'];
+  return `${sanityCdnUrl}/${imageId}?auto=format`;
 }
 
 async function fetchExperimentAssets(experimentId) {
