@@ -22,15 +22,18 @@ function urlForImage(asset, variantKey) {
   if (!source) {
     return null;
   }
-  const imageId = source.asset['_ref'];
+  const imageIdRaw = source.asset['_ref'];
+  const imageId = imageIdRaw
+    .replace('image-', '')
+    .replace(/-(\w+)$/, '.$1'); // Converts ending format from -png to .png, -jpg to .jpg etc
   return `${sanityCdnUrl}/${imageId}?auto=format`;
 }
 
 async function fetchExperimentAssets(experimentId) {
   const query = encodeURIComponent(`*[_type == "experiment" && id == "${experimentId}"]`);
   let assets = await fetch(`${sanityClientUrl}?query=${query}`).then(res => res.json());
-  logger('Fetched assets for experiment:', experimentId, assets);
   assets = assets.result;
+  logger('Fetched assets for experiment:', experimentId, assets);
   // Prefetch images for all variants
   assets.forEach(asset => {
     ['variant_a', 'variant_b', 'variant_c', 'variant_d'].forEach(variant => {
