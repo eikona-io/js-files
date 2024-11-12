@@ -27,9 +27,9 @@ function urlForImage(asset, variantKey) {
 
 async function fetchExperimentAssets(experimentId) {
   const query = encodeURIComponent(`*[_type == "experiment" && id == "${experimentId}"]`);
-  const assets = await fetch(`${sanityClientUrl}?query=${query}`).then(res => res.json());
+  let assets = await fetch(`${sanityClientUrl}?query=${query}`).then(res => res.json());
   logger('Fetched assets for experiment:', experimentId, assets);
-
+  assets = assets.result;
   // Prefetch images for all variants
   assets.forEach(asset => {
     ['variant_a', 'variant_b', 'variant_c', 'variant_d'].forEach(variant => {
