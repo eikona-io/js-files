@@ -8,6 +8,7 @@ if (toolbarJSON) {
 // Initialize Sanity client and image builder
 let sanityClientUrl;
 let sanityCdnUrl;
+let logger;
 const isMobile = window.innerWidth <= 768;
 
 function initializeSanity(projectId, dataset, apiVersion = '2024-01-01') {
