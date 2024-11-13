@@ -56,7 +56,7 @@ async function fetchExperimentAssets(experimentId) {
  * @param {boolean} enableLogging - Whether to enable logging
  * @param {string} domain - The domain to use for the reverse proxy
  */
-export function initializeAndLoadExperiments(posthogToken, sanityProjectId, experimentConfigs, dataset = 'production', enableLogging = false, domain = "www.eikona.io") {
+function initializeAndLoadExperiments(posthogToken, sanityProjectId, experimentConfigs, dataset = 'production', enableLogging = false, domain = "www.eikona.io") {
   logger = enableLogging ? console.log.bind(console) : () => { };
   // Setup reverse proxy for posthog
   const apiHost = `https://ph.${domain.replace(/^www\./, '')}`;
@@ -546,7 +546,7 @@ function rectsOverlap(rect1, rect2, tolerance = 0) {
  * @param {string} options.buttons[].height - The height of the button
  * @param {string} options.buttons[].onClick - The path to navigate to when the button is clicked
  */
-export function createBanner(divElement, options = {}) {
+function createBanner(divElement, options = {}) {
   const {
     shape = 'right-diagonal',
     text = '',
