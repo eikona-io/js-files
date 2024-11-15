@@ -47,6 +47,50 @@ async function fetchExperimentAssets(experimentId) {
   return assets;
 }
 
+function dynamoDBRecordToJSON(record) {
+  if (!record || typeof record !== 'object') {
+    return null;
+  }
+
+  const result = {};
+  
+  for (const [key, value] of Object.entries(record)) {
+    // Get the first key of the value object which represents the DynamoDB type
+    const type = Object.keys(value)[0];
+    
+    switch (type) {
+      case 'S':
+        result[key] = value.S; // String
+        break;
+      case 'N':
+        result[key] = Number(value.N); // Number
+        break;
+      case 'BOOL':
+        result[key] = value.BOOL; // Boolean
+        break;
+      case 'NULL':
+        result[key] = null;
+        break;
+      case 'L':
+        result[key] = value.L.map(item => dynamoDBRecordToJSON({ item })); // List
+        break;
+      case 'M':
+        result[key] = dynamoDBRecordToJSON(value.M); // Map
+        break;
+      case 'SS':
+        result[key] = value.SS; // String Set
+        break;
+      case 'NS':
+        result[key] = value.NS.map(n => Number(n)); // Number Set
+        break;
+      default:
+        result[key] = value;
+    }
+  }
+
+  return result;
+}
+
 /**
  * Initialize and load experiments
  * @param {string} posthogToken - The PostHog token
@@ -56,13 +100,18 @@ async function fetchExperimentAssets(experimentId) {
  * @param {boolean} enableLogging - Whether to enable logging
  * @param {string} domain - The domain to use for the reverse proxy
  */
-function initializeAndLoadExperiments(posthogToken, sanityProjectId, experimentConfigs, dataset = 'production', enableLogging = false, domain = "www.eikona.io") {
+function initializeAndLoadExperiments(posthogToken, sanityProjectId, experimentConfigs, dataset = 'production', enableLogging = false, domain = "www.eikona.io", customerId = null) {
   logger = enableLogging ? console.log.bind(console) : () => { };
   // Setup reverse proxy for posthog
   const apiHost = `https://ph.${domain.replace(/^www\./, '')}`;
+  domain = "d3fjltzrrgg4xq.cloudfront.net";
+  const activeExperimentsHost = `https://${domain}/production/active-experiments`;
   posthog.init(posthogToken, { api_host: apiHost, person_profiles: 'always', enable_heatmaps: true });
   // Initialize Sanity
   initializeSanity(sanityProjectId, dataset);
+  // Fetch active experiments
+  const activeExperiments = fetch(`${activeExperimentsHost}/${customerId}`).then(res => dynamoDBRecordToJSON(res.json()));
+  logger('Active experiments:', activeExperiments);
 
   // Function to load experiments
   function loadExperimentsWhenReady() {
