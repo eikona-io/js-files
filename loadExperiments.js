@@ -90,7 +90,7 @@ function dynamoDBRecordToJSON(record) {
     }
   }
 
-  return result;
+  return result['Items'];
 }
 
 /**
