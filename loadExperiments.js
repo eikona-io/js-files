@@ -53,7 +53,7 @@ function dynamoDBRecordToJSON(record) {
   if (!record || typeof record !== 'object') {
     return null;
   }
-  record = record['Items'][0];
+  record = record['Items'];
 
   const result = {};
 
