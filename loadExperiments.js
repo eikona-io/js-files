@@ -110,7 +110,10 @@ function initializeAndLoadExperiments(posthogToken, sanityProjectId, experimentC
   // Initialize Sanity
   initializeSanity(sanityProjectId, dataset);
   // Fetch active experiments
-  const activeExperiments = fetch(`${activeExperimentsHost}/${customerId}`).then(res => dynamoDBRecordToJSON(res.json()));
+  const activeExperiments = fetch(`${activeExperimentsHost}/${customerId}`).then(res => {
+    logger('Active experiments:', res.json());
+    return dynamoDBRecordToJSON(res.json());
+  });
   logger('Active experiments:', activeExperiments);
 
   // Function to load experiments
