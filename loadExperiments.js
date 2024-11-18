@@ -221,7 +221,7 @@ async function loadExperiments(experimentsConfigs) {
   logger('Current path:', currentPath);
   logger('Experiments configs:', experimentsConfigs);
   const relevantExperiments = experimentsConfigs.filter(config => {
-    logger('Checking experiment:', config.expId, config.sitePath, currentPath);
+    logger('Checking experiment:', config, config.expId, config.sitePath, currentPath);
     return config.sitePath === currentPath;
   });
 
