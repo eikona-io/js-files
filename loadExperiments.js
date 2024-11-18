@@ -105,6 +105,10 @@ async function initializeAndLoadExperiments(customerId, enableLogging = false) {
     .then(json => dynamoDBRecordToJSON(json));
   logger('Active experiments:', activeExperiments);
   // Setup reverse proxy for posthog
+  const posthogToken = activeExperiments.posthog_token;
+  const sanityProjectId = activeExperiments.sanity_project;
+  const dataset = activeExperiments.env;
+  const experimentConfigs = activeExperiments.experiments;
   posthog.init(posthogToken, { api_host: posthogHost, person_profiles: 'always', enable_heatmaps: true });
   // Initialize Sanity
   initializeSanity(sanityProjectId, dataset);
