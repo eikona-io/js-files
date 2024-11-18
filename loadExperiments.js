@@ -13,6 +13,96 @@ const isMobile = window.innerWidth <= 768;
 const posthogHost = "https://ph.eikona.io";
 const activeExperimentsHost = `https://d3fjltzrrgg4xq.cloudfront.net/production/active-experiments`;
 
+// Function to block specified paths
+function blockPaths(pathsToBlock) {
+  logger('Initializing blockPaths with:', pathsToBlock);
+  // Convert paths to RegExp objects for flexible matching
+  const blockedPatterns = pathsToBlock.map(path => new RegExp(`^${path}(\\?|$)`));
+
+  // Function to check if the current path is blocked
+  function isPathBlocked() {
+    const currentPath = window.location.pathname;
+    const isBlocked = blockedPatterns.some(pattern => pattern.test(currentPath));
+    logger(`Checking if path "${currentPath}" is blocked:`, isBlocked);
+    return isBlocked;
+  }
+
+  // Function to block the page
+  function blockPage() {
+    if (isPathBlocked()) {
+      logger('Blocking page...');
+      // Create overlay
+      const overlay = document.createElement('div');
+      overlay.id = 'path-block-overlay';
+      overlay.style.position = 'fixed';
+      overlay.style.top = '0';
+      overlay.style.left = '0';
+      overlay.style.width = '100%';
+      overlay.style.height = '100%';
+      overlay.style.backgroundColor = 'white';
+      overlay.style.zIndex = '9999';
+      overlay.style.display = 'flex';
+      overlay.style.justifyContent = 'center';
+      overlay.style.alignItems = 'center';
+      overlay.style.color = 'white';
+      overlay.style.fontSize = '24px';
+
+      // Append overlay to body or create body if it doesn't exist
+      if (document.body) {
+        document.body.appendChild(overlay);
+        document.body.style.overflow = 'hidden';
+      } else {
+        document.documentElement.appendChild(overlay);
+        // Prevent scrolling
+        document.documentElement.style.overflow = 'hidden';
+      }
+      logger('Overlay appended to body');
+
+      logger('Scrolling disabled');
+
+      // Set a timeout to unblock the page after 5 seconds
+      setTimeout(() => {
+        unblockPage(window.location.pathname);
+        logger('Page unblocked after 5 seconds timeout');
+      }, 5000);
+    }
+  }
+
+  // Function to unblock a specific page
+  function unblockPage(path) {
+    logger(`Attempting to unblock path: ${path}`);
+    if (window.location.pathname === path) {
+      const overlay = document.getElementById('path-block-overlay');
+      if (overlay) {
+        overlay.remove();
+        document.body.style.overflow = '';
+        document.documentElement.style.overflow = '';
+        logger(`Path ${path} unblocked successfully`);
+      } else {
+        logger(`No overlay found for path ${path}`);
+      }
+    } else {
+      logger(`Current path does not match ${path}, unblock not performed`);
+    }
+  }
+
+  // Initial check and block
+  if (isPathBlocked()) {
+    logger('Initial check: page is blocked');
+    blockPage();
+    // Attach unblock function to window object
+    window.unblockSignal = unblockPage;
+    logger('Unblock function attached to window.unblockSignal');
+
+    // Dispatch a custom event to signal that blockPages has finished
+    window.blockPagesLoaded = true;
+    const event = new CustomEvent('blockPagesLoaded');
+    window.dispatchEvent(event);
+    logger('blockPagesLoaded event dispatched');
+  }
+}
+
+
 function initializeSanity(projectId, dataset, apiVersion = '2024-01-01') {
   sanityClientUrl = `https://${projectId}.apicdn.sanity.io/v${apiVersion}/data/query/${dataset}`;
   sanityCdnUrl = `https://cdn.sanity.io/images/${projectId}/${dataset}`;
@@ -100,17 +190,20 @@ function dynamoDBRecordToJSON(record) {
  * @param {string} customerId - The customer ID
  * @param {boolean} enableLogging - Whether to enable logging
  */
-async function initializeAndLoadExperiments(customerId, enableLogging = false) {
+async function initializeAndLoadExperiments(customerId) {
   logger = enableLogging ? console.log.bind(console) : () => { };
+
   const activeExperiments = await fetch(`${activeExperimentsHost}/${customerId}`)
     .then(res => res.json())
     .then(json => dynamoDBRecordToJSON(json["Items"][0]));
   logger('Active experiments:', activeExperiments);
-  // Setup reverse proxy for posthog
   const posthogToken = activeExperiments.posthog_token;
   const sanityProjectId = activeExperiments.sanity_project;
   const dataset = activeExperiments.env;
   const experimentsConfigs = activeExperiments.experiments;
+  const pagesWithExperiments = experimentsConfigs.map(config => config.sitePath);
+
+  blockPaths(pagesWithExperiments);
   posthog.init(posthogToken, { api_host: posthogHost, person_profiles: 'always', enable_heatmaps: true });
   // Initialize Sanity
   initializeSanity(sanityProjectId, dataset);
