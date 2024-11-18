@@ -55,6 +55,7 @@ function dynamoDBRecordToJSON(record) {
   }
   record = record['Items'];
   console.log('Record:', record);
+  record = record[0];
 
   const result = {};
 
