@@ -53,9 +53,7 @@ function dynamoDBRecordToJSON(record) {
   if (!record || typeof record !== 'object') {
     return null;
   }
-  record = record['Items'];
   console.log('Record:', record);
-  record = record[0];
 
   const result = {};
 
@@ -105,7 +103,7 @@ async function initializeAndLoadExperiments(customerId, enableLogging = false) {
   logger = enableLogging ? console.log.bind(console) : () => { };
   const activeExperiments = await fetch(`${activeExperimentsHost}/${customerId}`)
     .then(res => res.json())
-    .then(json => dynamoDBRecordToJSON(json));
+    .then(json => dynamoDBRecordToJSON(json["Items"][0]));
   logger('Active experiments:', activeExperiments);
   // Setup reverse proxy for posthog
   const posthogToken = activeExperiments.posthog_token;
