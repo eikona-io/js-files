@@ -10,6 +10,8 @@ let sanityClientUrl;
 let sanityCdnUrl;
 let logger;
 const isMobile = window.innerWidth <= 768;
+const posthogHost = "https://ph.eikona.io";
+const activeExperimentsHost = `https://d3fjltzrrgg4xq.cloudfront.net/production/active-experiments`;
 
 function initializeSanity(projectId, dataset, apiVersion = '2024-01-01') {
   sanityClientUrl = `https://${projectId}.apicdn.sanity.io/v${apiVersion}/data/query/${dataset}`;
@@ -53,11 +55,11 @@ function dynamoDBRecordToJSON(record) {
   }
 
   const result = {};
-  
+
   for (const [key, value] of Object.entries(record)) {
     // Get the first key of the value object which represents the DynamoDB type
     const type = Object.keys(value)[0];
-    
+
     switch (type) {
       case 'S':
         result[key] = value.S; // String
@@ -93,25 +95,17 @@ function dynamoDBRecordToJSON(record) {
 
 /**
  * Initialize and load experiments
- * @param {string} posthogToken - The PostHog token
- * @param {string} sanityProjectId - The Sanity project ID
- * @param {string[]} experimentConfigs - The experiment configurations
- * @param {string} dataset - The Sanity dataset
+ * @param {string} customerId - The customer ID
  * @param {boolean} enableLogging - Whether to enable logging
- * @param {string} domain - The domain to use for the reverse proxy
  */
-function initializeAndLoadExperiments(posthogToken, sanityProjectId, experimentConfigs, dataset = 'production', enableLogging = false, domain = "www.eikona.io", customerId = null) {
+async function initializeAndLoadExperiments(customerId, enableLogging = false) {
   logger = enableLogging ? console.log.bind(console) : () => { };
   // Setup reverse proxy for posthog
-  const apiHost = `https://ph.${domain.replace(/^www\./, '')}`;
-  domain = "d3fjltzrrgg4xq.cloudfront.net";
-  const activeExperimentsHost = `https://${domain}/production/active-experiments`;
-  posthog.init(posthogToken, { api_host: apiHost, person_profiles: 'always', enable_heatmaps: true });
+  posthog.init(posthogToken, { api_host: posthogHost, person_profiles: 'always', enable_heatmaps: true });
   // Initialize Sanity
   initializeSanity(sanityProjectId, dataset);
   // Fetch active experiments
-  const activeExperiments = fetch(`${activeExperimentsHost}/${customerId}`).then(res => {
-    logger('Active experiments:', res.json());
+  const activeExperiments = await fetch(`${activeExperimentsHost}/${customerId}`).then(res => {
     return dynamoDBRecordToJSON(res.json());
   });
   logger('Active experiments:', activeExperiments);
@@ -120,7 +114,7 @@ function initializeAndLoadExperiments(posthogToken, sanityProjectId, experimentC
   function loadExperimentsWhenReady() {
     logger('Loading experiments...');
     try {
-      loadExperiments(experimentConfigs);
+      loadExperiments(activeExperiments);
     } catch (error) {
       logger('Error initializing or loading experiments:', error);
       unblockPage();
@@ -232,7 +226,7 @@ async function loadExperiments(experimentConfigs) {
     });
   };
   await getFeatureFlags();
-  
+
   // Now fetch experiment assets in parallel after flags are loaded
   const fetchAssetsPromises = relevantExperiments.map(config => {
     const subExperimentId = getSubExperimentId(config.expId);
