@@ -216,9 +216,11 @@ function getExperimentVariant(experimentId) {
   // no sub experiment
   return posthog.getFeatureFlag(experimentId);
 }
-async function loadExperiments(experimentConfigs) {
+async function loadExperiments(experimentsConfigs) {
   const currentPath = window.location.pathname;
-  const relevantExperiments = experimentConfigs.filter(config => config.sitePath === currentPath);
+  logger('Current path:', currentPath);
+  logger('Experiments configs:', experimentsConfigs);
+  const relevantExperiments = experimentsConfigs.filter(config => config.sitePath === currentPath);
 
   // Get feature flags first
   const getFeatureFlags = () => {
