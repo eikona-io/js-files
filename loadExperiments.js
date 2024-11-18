@@ -101,14 +101,14 @@ function dynamoDBRecordToJSON(record) {
 async function initializeAndLoadExperiments(customerId, enableLogging = false) {
   logger = enableLogging ? console.log.bind(console) : () => { };
   const activeExperiments = await fetch(`${activeExperimentsHost}/${customerId}`).then(res => {
+    // Fetch active experiments
+    return dynamoDBRecordToJSON(res.json());
+  });
+  logger('Active experiments:', activeExperiments);
   // Setup reverse proxy for posthog
   posthog.init(posthogToken, { api_host: posthogHost, person_profiles: 'always', enable_heatmaps: true });
   // Initialize Sanity
   initializeSanity(sanityProjectId, dataset);
-  // Fetch active experiments
-    return dynamoDBRecordToJSON(res.json());
-  });
-  logger('Active experiments:', activeExperiments);
 
   // Function to load experiments
   function loadExperimentsWhenReady() {
