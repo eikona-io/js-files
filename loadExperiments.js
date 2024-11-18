@@ -220,7 +220,10 @@ async function loadExperiments(experimentsConfigs) {
   const currentPath = window.location.pathname;
   logger('Current path:', currentPath);
   logger('Experiments configs:', experimentsConfigs);
-  const relevantExperiments = experimentsConfigs.filter(config => config.sitePath === currentPath);
+  const relevantExperiments = experimentsConfigs.filter(config => {
+    logger('Checking experiment:', config.expId, config.sitePath, currentPath);
+    return config.sitePath === currentPath;
+  });
 
   // Get feature flags first
   const getFeatureFlags = () => {
