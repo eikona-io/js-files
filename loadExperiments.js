@@ -74,7 +74,7 @@ function dynamoDBRecordToJSON(record) {
         result[key] = null;
         break;
       case 'L':
-        result[key] = value.L.map(item => dynamoDBRecordToJSON({ item })); // List
+        result[key] = value.L.map(item => dynamoDBRecordToJSON(item)); // List
         break;
       case 'M':
         result[key] = dynamoDBRecordToJSON(value.M); // Map
