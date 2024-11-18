@@ -53,12 +53,11 @@ function dynamoDBRecordToJSON(record) {
   if (!record || typeof record !== 'object') {
     return null;
   }
-  console.log('Record:', record);
   const result = {};
 
   for (const [key, value] of Object.entries(record)) {
     // Get the first key of the value object which represents the DynamoDB type
-    const type = Object.keys(value)[0];
+    const type = key === 'M' ? key : Object.keys(value)[0];
 
     switch (type) {
       case 'S':
@@ -74,11 +73,13 @@ function dynamoDBRecordToJSON(record) {
         result[key] = null;
         break;
       case 'L':
-        result[key] = value.L.map(item => dynamoDBRecordToJSON({ item })); // List
+        result[key] = value.L.map(item => dynamoDBRecordToJSON(item)); // List
         break;
       case 'M':
-        result[key] = dynamoDBRecordToJSON(value.M); // Map
-        break;
+        Object.keys(value).forEach(key => {
+          result[key] = dynamoDBRecordToJSON(value);
+        });
+        return result; // Map
       case 'SS':
         result[key] = value.SS; // String Set
         break;
@@ -86,7 +87,7 @@ function dynamoDBRecordToJSON(record) {
         result[key] = value.NS.map(n => Number(n)); // Number Set
         break;
       default:
-        result[key] = value;
+        return value;
     }
   }
 
@@ -219,9 +220,7 @@ function getExperimentVariant(experimentId) {
 async function loadExperiments(experimentsConfigs) {
   const currentPath = window.location.pathname;
   logger('Current path:', currentPath);
-  logger('Experiments configs:', experimentsConfigs);
   const relevantExperiments = experimentsConfigs.filter(config => {
-    logger('Checking experiment:', config, config.expId, config.sitePath, currentPath);
     return config.sitePath === currentPath;
   });
 

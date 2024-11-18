@@ -23,42 +23,10 @@
 </div>
 
 <!-- Include your script file -->
-<script type="module">
-    import { createBanner } from './loadExperiments.js';
-
-    // Get the div element
-    const divElement = document.getElementById('banner-container');
-
-    // Call the createBanner function
-    createBanner(divElement, {
-        shape: 'left-diagonal',
-        text: 'Personalized Attention, Exceptional Service',
-        subText: 'Whether you design it yourself or need a helping hand, we\'re here to bring your vision to life.',
-        textColor: '#ffffff',
-        shapeColor: '#6ea99e',
-        textSize: '5vh',
-        subTextSize: '3vh',
-        buttons: [
-            {
-                text: 'Design Now',
-                color: '#ffa500',
-                textColor: '#ffffff',
-                textSize: '2vh',
-                padding: '10px 20px',
-                edgesRadius: '4px',
-                onClick: 'https://www.google.com'
-            },
-            {
-                text: 'Learn More',
-                color: '#ffa500',
-                textColor: '#ffffff',
-                textSize: '2vh',
-                padding: '10px 20px',
-                edgesRadius: '4px',
-                onClick: 'https://www.google.com'
-            }
-        ]
-    });
+<script src="./loadExperiments.js"></script>
+<script>
+    // Initialize and load experiments with customer ID and logging enabled
+    initializeAndLoadExperiments('merch-test', true);
 </script>
 
 </body>
