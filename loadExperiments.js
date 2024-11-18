@@ -77,10 +77,10 @@ function dynamoDBRecordToJSON(record) {
         break;
       case 'M':
         const subResult = dynamoDBRecordToJSON(value);
-        Object.keys(value).forEach(key => {
+        Object.keys(subResult).forEach(key => {
           result[key] = subResult[key];
         });
-        return result; // Map
+        break;
       case 'SS':
         result[key] = value.SS; // String Set
         break;
