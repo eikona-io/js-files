@@ -190,7 +190,7 @@ function dynamoDBRecordToJSON(record) {
  * @param {string} customerId - The customer ID
  * @param {boolean} enableLogging - Whether to enable logging
  */
-async function initializeAndLoadExperiments(customerId) {
+async function initializeAndLoadExperiments(customerId, enableLogging = false) {
   logger = enableLogging ? console.log.bind(console) : () => { };
 
   const activeExperiments = await fetch(`${activeExperimentsHost}/${customerId}`)
