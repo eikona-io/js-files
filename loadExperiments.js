@@ -53,6 +53,7 @@ function dynamoDBRecordToJSON(record) {
   if (!record || typeof record !== 'object') {
     return null;
   }
+  record = record['Items'][0];
 
   const result = {};
 
@@ -90,7 +91,7 @@ function dynamoDBRecordToJSON(record) {
     }
   }
 
-  return result['Items'];
+  return result;
 }
 
 /**
@@ -108,7 +109,7 @@ async function initializeAndLoadExperiments(customerId, enableLogging = false) {
   const posthogToken = activeExperiments.posthog_token;
   const sanityProjectId = activeExperiments.sanity_project;
   const dataset = activeExperiments.env;
-  const experimentConfigs = activeExperiments.experiments;
+  const experimentsConfigs = activeExperiments.experiments;
   posthog.init(posthogToken, { api_host: posthogHost, person_profiles: 'always', enable_heatmaps: true });
   // Initialize Sanity
   initializeSanity(sanityProjectId, dataset);
