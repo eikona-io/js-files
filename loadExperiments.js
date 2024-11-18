@@ -53,7 +53,6 @@ function dynamoDBRecordToJSON(record) {
   if (!record || typeof record !== 'object') {
     return null;
   }
-  console.log('Record:', record);
 
   const result = {};
 
@@ -118,7 +117,7 @@ async function initializeAndLoadExperiments(customerId, enableLogging = false) {
   function loadExperimentsWhenReady() {
     logger('Loading experiments...');
     try {
-      loadExperiments(activeExperiments);
+      loadExperiments(experimentsConfigs);
     } catch (error) {
       logger('Error initializing or loading experiments:', error);
       unblockPage();
