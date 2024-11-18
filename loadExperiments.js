@@ -100,10 +100,9 @@ function dynamoDBRecordToJSON(record) {
  */
 async function initializeAndLoadExperiments(customerId, enableLogging = false) {
   logger = enableLogging ? console.log.bind(console) : () => { };
-  const activeExperiments = await fetch(`${activeExperimentsHost}/${customerId}`).then(res => {
-    // Fetch active experiments
-    return dynamoDBRecordToJSON(res.json());
-  });
+  const activeExperiments = await fetch(`${activeExperimentsHost}/${customerId}`)
+    .then(res => res.json())
+    .then(json => dynamoDBRecordToJSON(json));
   logger('Active experiments:', activeExperiments);
   // Setup reverse proxy for posthog
   posthog.init(posthogToken, { api_host: posthogHost, person_profiles: 'always', enable_heatmaps: true });
