@@ -319,6 +319,7 @@ function determineExperimentVariants(experimentsConfigs) {
     if (variants.length > 0) {
       const randomIndex = Math.floor(Math.random() * variants.length);
       results[expFQId] = variants[randomIndex]["id"];
+      logger('Experiment variant:', expFQId, results[expFQId]);
     }
   });
   return results;
@@ -336,15 +337,6 @@ async function loadExperiments(experimentsConfigs) {
     return config.sitePath === currentPath;
   });
 
-  // Get feature flags first
-  const getFeatureFlags = () => {
-    return new Promise(resolve => {
-      posthog.onFeatureFlags(() => {
-        resolve();
-      });
-    });
-  };
-  await getFeatureFlags();
 
   // Now fetch experiment assets in parallel after flags are loaded
   const fetchAssetsPromises = relevantExperiments.map(config => {
