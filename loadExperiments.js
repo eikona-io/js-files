@@ -350,6 +350,9 @@ async function loadExperiments(experimentsConfigs) {
     logger('Fetching assets for experiment:', FQExpId);
     return fetchExperimentAssets(FQExpId).then(assets => ({ expId: config.expId, assets }));
   });
+  posthog.onFeatureFlags(() => {
+    logger('Feature flags sent.');
+  });
 
   // Wait for all assets to be fetched
   const assetsResults = await Promise.all(fetchAssetsPromises);
