@@ -202,9 +202,13 @@ async function initializeAndLoadExperiments(customerId, enableLogging = false) {
   const dataset = activeExperiments.env;
   const experimentsConfigs = activeExperiments.experiments;
   const pagesWithExperiments = experimentsConfigs.map(config => config.sitePath);
-
   blockPaths(pagesWithExperiments);
-  posthog.init(posthogToken, { api_host: posthogHost, person_profiles: 'always', enable_heatmaps: true });
+
+  // Only initialize PostHog if it hasn't been initialized yet
+  if (!window.posthog.__loaded) {
+    const experimentsVariants = determineExperimentVariants(experimentsConfigs);
+    posthog.init(posthogToken, { api_host: posthogHost, person_profiles: 'always', enable_heatmaps: true, feature_flags: experimentsVariants });
+  }
   // Initialize Sanity
   initializeSanity(sanityProjectId, dataset);
 
@@ -296,21 +300,35 @@ function prefetchImage(url) {
 }
 
 
-function getSubExperimentId(experimentId) {
-  const subExperimentId = posthog.getFeatureFlagPayload(experimentId);
-  logger('Sub experiment ID:', subExperimentId);
-  return subExperimentId && subExperimentId['sub-experiment-id'] ? subExperimentId['sub-experiment-id'] : null;
+function getExperimentAudience(experimentConfig) {
+  // TODO: implement this
+  return 'global';
 }
 
-function getExperimentVariant(experimentId) {
-  const subExperimentId = getSubExperimentId(experimentId);
-  if (subExperimentId) {
-    logger('Getting variant for sub experiment:', subExperimentId);
-    return posthog.getFeatureFlag(subExperimentId);
-  }
-  // no sub experiment
-  return posthog.getFeatureFlag(experimentId);
+function getFQExperimentId(experimentConfig) {
+  const experimentAudience = getExperimentAudience(experimentConfig);
+  return experimentAudience === 'global' ? experimentConfig.expId : `${experimentConfig.expId}-${experimentAudience}`;
 }
+
+function determineExperimentVariants(experimentsConfigs) {
+  results = {};
+  experimentsConfigs.forEach(config => {
+    const expFQId = getFQExperimentId(config);
+    const audience = getExperimentAudience(config);
+    const variants = config.variants[audience];
+    if (variants.length > 0) {
+      const randomIndex = Math.floor(Math.random() * variants.length);
+      results[expFQId] = variants[randomIndex]["id"];
+    }
+  });
+  return results;
+}
+
+function getExperimentVariant(experimentConfig) {
+  const expFQId = getFQExperimentId(experimentConfig);
+  return posthog.getFeatureFlag(expFQId);
+}
+
 async function loadExperiments(experimentsConfigs) {
   const currentPath = window.location.pathname;
   logger('Current path:', currentPath);
@@ -330,10 +348,9 @@ async function loadExperiments(experimentsConfigs) {
 
   // Now fetch experiment assets in parallel after flags are loaded
   const fetchAssetsPromises = relevantExperiments.map(config => {
-    const subExperimentId = getSubExperimentId(config.expId);
-    const expId = subExperimentId ? subExperimentId : config.expId;
-    logger('Fetching assets for experiment:', expId);
-    return fetchExperimentAssets(expId).then(assets => ({ expId: config.expId, assets }));
+    const FQExpId = getFQExperimentId(config);
+    logger('Fetching assets for experiment:', FQExpId);
+    return fetchExperimentAssets(FQExpId).then(assets => ({ expId: config.expId, assets }));
   });
 
   // Wait for all assets to be fetched
@@ -363,6 +380,8 @@ async function loadExperiments(experimentsConfigs) {
       xPaths = [],
       sitePath = '',
       textXPaths = [],
+      audiences = [],
+      variants = [],
     } = experimentConfig;
 
     // Check if the current path matches the experiment's sitePath
@@ -372,7 +391,7 @@ async function loadExperiments(experimentsConfigs) {
     }
 
     // fetch variant key
-    const variant = getExperimentVariant(expId);
+    const variant = getExperimentVariant(experimentConfig);
     if (variant === undefined) {
       logger(`Experiment not found: ${expId}`);
       loadedExperiments++;
