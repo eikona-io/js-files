@@ -207,7 +207,7 @@ async function initializeAndLoadExperiments(customerId, enableLogging = false) {
   // Only initialize PostHog if it hasn't been initialized yet
   if (!window.posthog.__loaded) {
     const experimentsVariants = evaluateExperimentVariants(experimentsConfigs);
-    posthog.init(posthogToken, { api_host: posthogHost, person_profiles: 'always', enable_heatmaps: true, featureFlags: experimentsVariants });
+    posthog.init(posthogToken, { api_host: posthogHost, person_profiles: 'always', enable_heatmaps: true, bootstrap: { featureFlags: experimentsVariants } });
   }
   // Initialize Sanity
   initializeSanity(sanityProjectId, dataset);
