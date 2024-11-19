@@ -333,6 +333,8 @@ function evaluateExperimentVariants(experimentsConfigs) {
 function getExperimentVariant(experimentConfig) {
   const expFQId = getFQExperimentId(experimentConfig);
   const variants = JSON.parse(localStorage.getItem('eikona-experiments-variants') || '{}');
+  const posthogVariant = posthog.getFeatureFlag(expFQId);
+  logger('PostHog variant:', expFQId, posthogVariant);
   return variants[expFQId];
 }
 
@@ -349,9 +351,6 @@ async function loadExperiments(experimentsConfigs) {
     const FQExpId = getFQExperimentId(config);
     logger('Fetching assets for experiment:', FQExpId);
     return fetchExperimentAssets(FQExpId).then(assets => ({ expId: config.expId, assets }));
-  });
-  posthog.onFeatureFlags(() => {
-    logger('Feature flags sent.');
   });
 
   // Wait for all assets to be fetched
