@@ -206,7 +206,7 @@ async function initializeAndLoadExperiments(customerId, enableLogging = false) {
 
   // Only initialize PostHog if it hasn't been initialized yet
   if (!window.posthog.__loaded) {
-    const experimentsVariants = determineExperimentVariants(experimentsConfigs);
+    const experimentsVariants = evaluateExperimentVariants(experimentsConfigs);
     posthog.init(posthogToken, { api_host: posthogHost, person_profiles: 'always', enable_heatmaps: true, feature_flags: experimentsVariants });
   }
   // Initialize Sanity
@@ -310,7 +310,10 @@ function getFQExperimentId(experimentConfig) {
   return experimentAudience === 'global' ? experimentConfig.expId : `${experimentConfig.expId}-${experimentAudience}`;
 }
 
-function determineExperimentVariants(experimentsConfigs) {
+function evaluateExperimentVariants(experimentsConfigs) {
+  if (localStorage.getItem('eikona-experiments-variants')) {
+    return JSON.parse(localStorage.getItem('eikona-experiments-variants'));
+  }
   results = {};
   experimentsConfigs.forEach(config => {
     const expFQId = getFQExperimentId(config);
@@ -322,12 +325,15 @@ function determineExperimentVariants(experimentsConfigs) {
       logger('Experiment variant:', expFQId, results[expFQId]);
     }
   });
+  // Store variants in local storage
+  localStorage.setItem('eikona-experiments-variants', JSON.stringify(results));
   return results;
 }
 
 function getExperimentVariant(experimentConfig) {
   const expFQId = getFQExperimentId(experimentConfig);
-  return posthog.getFeatureFlag(expFQId);
+  const variants = JSON.parse(localStorage.getItem('eikona-experiments-variants') || '{}');
+  return variants[expFQId];
 }
 
 async function loadExperiments(experimentsConfigs) {
