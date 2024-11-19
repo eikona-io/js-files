@@ -315,7 +315,7 @@ function determineExperimentVariants(experimentsConfigs) {
   experimentsConfigs.forEach(config => {
     const expFQId = getFQExperimentId(config);
     const audience = getExperimentAudience(config);
-    const variants = config.variants[audience];
+    const variants = config.variant_groups.find(group => group.audience_id === audience).variants;
     if (variants.length > 0) {
       const randomIndex = Math.floor(Math.random() * variants.length);
       results[expFQId] = variants[randomIndex]["id"];
