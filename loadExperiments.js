@@ -206,7 +206,9 @@ async function initializeAndLoadExperiments(customerId, enableLogging = false) {
 
   // Only initialize PostHog if it hasn't been initialized yet
   if (!window.posthog.__loaded) {
+    logger('Initializing PostHog...');
     const experimentsVariants = evaluateExperimentVariants(experimentsConfigs);
+    logger('Evaluated experiment variants:', experimentsVariants);
     posthog.init(posthogToken, {
       api_host: posthogHost,
       person_profiles: 'always',
