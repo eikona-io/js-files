@@ -335,17 +335,17 @@ function evaluateExperimentVariants(experimentsConfigs) {
     }
   });
   // Store variants in local storage
-  localStorage.setItem('eikona-experiments-variants', JSON.stringify(results));
+  // localStorage.setItem('eikona-experiments-variants', JSON.stringify(results));
   return results;
 }
 
 function getExperimentVariant(experimentConfig) {
   const expFQId = getFQExperimentId(experimentConfig);
-  const variants = JSON.parse(localStorage.getItem('eikona-experiments-variants') || '{}');
+  // const variants = JSON.parse(localStorage.getItem('eikona-experiments-variants') || '{}');
   const posthogVariant = posthog.getFeatureFlag(expFQId);
   logger('PostHog Feature flag:', expFQId, posthogVariant);
-  logger('Local storage variant:', expFQId, variants[expFQId]);
-  return variants[expFQId];
+  // logger('Local storage variant:', expFQId, variants[expFQId]);
+  return posthogVariant;
 }
 
 async function loadExperiments(experimentsConfigs) {
