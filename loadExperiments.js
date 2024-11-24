@@ -316,7 +316,7 @@ function getExperimentAudience(experimentConfig) {
 
 function getFQExperimentId(experimentConfig) {
   const experimentAudience = getExperimentAudience(experimentConfig);
-  return experimentAudience === 'global' ? experimentConfig.expId : `${experimentConfig.expId}-${experimentAudience}`;
+  return String(experimentConfig.expId) + (experimentAudience === 'global' ? '' : '-' + experimentAudience);
 }
 
 function evaluateExperimentVariants(experimentsConfigs) {
@@ -331,7 +331,6 @@ function evaluateExperimentVariants(experimentsConfigs) {
     if (variants.length > 0) {
       const randomIndex = Math.floor(Math.random() * variants.length);
       results[expFQId] = variants[randomIndex]["id"];
-      logger('Experiment variant:', expFQId, results[expFQId]);
     }
   });
   // Store variants in local storage
