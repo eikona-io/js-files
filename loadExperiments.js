@@ -213,9 +213,9 @@ async function initializeAndLoadExperiments(customerId, enableLogging = false) {
       api_host: posthogHost,
       person_profiles: 'always',
       enable_heatmaps: true,
-      bootstrap: {
-        featureFlags: experimentsVariants,
-      },
+      // bootstrap: {
+      //   featureFlags: experimentsVariants,
+      // },
     });
     const startTime = performance.now();
     posthog.onFeatureFlags(() => {
