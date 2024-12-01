@@ -213,7 +213,6 @@ async function initializeAndLoadExperiments(customerId, enableLogging = false) {
       api_host: posthogHost,
       person_profiles: 'always',
       enable_heatmaps: true,
-      advanced_disable_decide: true,
       loaded: (posthog) => {
         logger('PostHog initialized');
         posthog.featureFlags.override(experimentsVariants);
