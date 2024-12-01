@@ -216,7 +216,7 @@ async function initializeAndLoadExperiments(customerId, enableLogging = false) {
       advanced_disable_decide: true,
       loaded: (posthog) => {
         logger('PostHog initialized');
-        posthog.feature_flags.override(experimentsVariants);
+        posthog.featureFlags.override(experimentsVariants);
       }
     });
 
