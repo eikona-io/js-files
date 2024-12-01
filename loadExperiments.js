@@ -217,7 +217,7 @@ async function initializeAndLoadExperiments(customerId, enableLogging = false) {
         featureFlags: experimentsVariants,
       },
     });
-    posthog.override(experimentsVariants);
+    posthog.feature_flags.override(experimentsVariants);
     const startTime = performance.now();
     posthog.onFeatureFlags(() => {
       const endTime = performance.now();
