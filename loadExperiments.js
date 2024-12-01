@@ -209,13 +209,17 @@ async function initializeAndLoadExperiments(customerId, enableLogging = false) {
     logger('Initializing PostHog...');
     const experimentsVariants = evaluateExperimentVariants(experimentsConfigs);
     logger('Evaluated experiment variants:', experimentsVariants);
-    await posthog.init(posthogToken, {
+    posthog.init(posthogToken, {
       api_host: posthogHost,
       person_profiles: 'always',
       enable_heatmaps: true,
+      advanced_disable_decide: true,
+      loaded: (posthog) => {
+        logger('PostHog initialized');
+        posthog.feature_flags.override(experimentsVariants);
+      }
     });
 
-    posthog.feature_flags.override(experimentsVariants);
     const startTime = performance.now();
     posthog.onFeatureFlags(() => {
       const endTime = performance.now();
