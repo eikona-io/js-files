@@ -9,6 +9,8 @@ if (toolbarJSON) {
 let sanityClientUrl;
 let sanityCdnUrl;
 let logger;
+let loadedExperiments = 0;
+let totalExperiments;
 const isMobile = window.innerWidth <= 768;
 const posthogHost = "https://ph.eikona.io";
 const activeExperimentsHost = `https://d3fjltzrrgg4xq.cloudfront.net/production/active-experiments`;
@@ -292,6 +294,96 @@ function getExperimentVariant(experimentConfig) {
   return variantKey;
 }
 
+function handleImgTag(element, asset, elementSize, isMobileAsset) {
+  if (asset.copyType !== 'none') {
+    const parentDiv = document.createElement('div');
+    parentDiv.style.position = 'relative';
+    if (elementSize.width > 0 && elementSize.height > 0 && !isMobileAsset) {
+      parentDiv.style.width = `${elementSize.width}px`;
+      parentDiv.style.height = `${elementSize.height}px`;
+    }
+    element.parentNode.insertBefore(parentDiv, element);
+    parentDiv.appendChild(element);
+
+    const copyDiv = document.createElement('div');
+    copyDiv.style.position = 'absolute';
+    copyDiv.style.top = '0';
+    copyDiv.style.left = '0';
+    copyDiv.style.width = '100%';
+    copyDiv.style.height = '100%';
+    parentDiv.appendChild(copyDiv);
+    addCopy(copyDiv, asset);
+  }
+  element.src = imageUrl;
+  element.srcset = "";
+  element.style.objectFit = 'cover';
+  const sourceElement = element.parentElement.querySelector('source');
+  if (sourceElement) {
+    sourceElement.remove();
+  }
+}
+
+function handleDivTag(element, asset, elementSize, isMobileAsset) {
+  element.style.backgroundImage = `url('${imageUrl}')`;
+  element.style.backgroundRepeat = 'no-repeat';
+  element.style.backgroundPosition = 'center';
+  element.style.backgroundSize = !isMobileAsset ? 'cover' : 'contain';
+  element.dataset.bg = "";
+  element.dataset.bgHidpi = "";
+  if (asset.copyType !== 'none') {
+    addCopy(element, asset);
+  }
+}
+
+function handleVideoTag(element, asset, elementSize, isMobileAsset) {
+  const parentElement = element.parentNode;
+  const img = document.createElement('img');
+  img.src = imageUrl;
+  img.id = parentElement.id;
+  img.alt = parentElement.getAttribute('alt') || '';
+  img.className = parentElement.className;
+  // preserve the original image size
+  if (elementSize.width > 0 && elementSize.height > 0 && !isMobileAsset) {
+    img.style.width = `${elementSize.width}px`;
+    img.style.height = `${elementSize.height}px`;
+  }
+  if (parentElement.tagName.toLowerCase() === 'video-section') {
+    // Replace the video-section with an image
+    parentElement.parentNode.replaceChild(img, parentElement);
+  } else {
+    // Replace just the video element with an image
+    element.parentNode.replaceChild(img, element);
+  }
+}
+
+
+function checkAllExperimentsLoadedAndUnblockPage() {
+  if (loadedExperiments === totalExperiments) {
+    unblockPage();
+  }
+}
+
+function incrementLoadedExperiments() {
+  loadedExperiments++;
+  checkAllExperimentsLoadedAndUnblockPage();
+}
+
+function createLoadImagePromise(imageUrl, element) {
+  return new Promise((resolve, reject) => {
+    const img = new Image();
+    img.onload = () => {
+      incrementLoadedExperiments();
+      logger(`Full element tag:`, element.outerHTML);
+      resolve();
+    };
+    img.onerror = (error) => {
+      console.error(`Failed to load image for experiment:`, error);
+      reject(error);
+    };
+    img.src = imageUrl;
+  });
+}
+
 async function loadExperiments(experimentsConfigs) {
   const currentPath = window.location.pathname;
   logger('Current path:', currentPath);
@@ -300,15 +392,10 @@ async function loadExperiments(experimentsConfigs) {
   });
 
 
-  let loadedExperiments = 0;
-  const totalExperiments = relevantExperiments.length;
+
+  totalExperiments = relevantExperiments.length;
   logger('Total experiments for page:', totalExperiments);
 
-  function checkAllExperimentsLoadedAndUnblockPage() {
-    if (loadedExperiments === totalExperiments) {
-      unblockPage();
-    }
-  }
 
   async function processExperiment(experimentConfig) {
     const {
@@ -330,8 +417,7 @@ async function loadExperiments(experimentsConfigs) {
     const variantKey = getExperimentVariant(experimentConfig);
     if (variantKey === undefined) {
       logger(`Experiment not found: ${expId}`);
-      loadedExperiments++;
-      checkAllExperimentsLoadedAndUnblockPage();
+      incrementLoadedExperiments();
       return;
     }
 
@@ -351,12 +437,13 @@ async function loadExperiments(experimentsConfigs) {
     logger('Found text elements for experiment:', expId, textElements);
     const nofElements = elements.length;
     if (nofElements === 0) {
+      logger(`No elements found for experiment ${expId}`);
+      incrementLoadedExperiments();
       return;
     }
     logger('Experiment variant:', expId, variantKey);
     if (variantKey === 'control') {
-      loadedExperiments++;
-      checkAllExperimentsLoadedAndUnblockPage();
+      incrementLoadedExperiments();
       return;
     }
     removeTextFromElements(textElements);
@@ -367,8 +454,7 @@ async function loadExperiments(experimentsConfigs) {
     const experimentAssets = await fetchExperimentAssets(FQExpId, variantKey);
     if (!experimentAssets) {
       logger(`No assets found for experiment ${expId}`);
-      loadedExperiments++;
-      checkAllExperimentsLoadedAndUnblockPage();
+      incrementLoadedExperiments();
       return;
     }
 
@@ -386,8 +472,7 @@ async function loadExperiments(experimentsConfigs) {
     });
     if (!isBroadcastExperiment && !isMultiAssetExperiment && !isSingleAssetExperiment && !isMultiAssetBroadcastExperiment) {
       console.warn(`Mismatch in experiment ${expId}: ${nofAssets} assets for ${nofElements} elements`);
-      loadedExperiments++;
-      checkAllExperimentsLoadedAndUnblockPage();
+      incrementLoadedExperiments();
       return;
     }
 
@@ -417,83 +502,16 @@ async function loadExperiments(experimentsConfigs) {
             // each element type has a different way to change the image
             if (['img', 'div', 'video', 'section'].includes(tagName)) {
               if (tagName === 'img') {
-                if (asset.copyType !== 'none') {
-                  const parentDiv = document.createElement('div');
-                  parentDiv.style.position = 'relative';
-                  if (elementSize.width > 0 && elementSize.height > 0 && !isMobileAsset) {
-                    parentDiv.style.width = `${elementSize.width}px`;
-                    parentDiv.style.height = `${elementSize.height}px`;
-                  }
-                  element.parentNode.insertBefore(parentDiv, element);
-                  parentDiv.appendChild(element);
-
-                  const copyDiv = document.createElement('div');
-                  copyDiv.style.position = 'absolute';
-                  copyDiv.style.top = '0';
-                  copyDiv.style.left = '0';
-                  copyDiv.style.width = '100%';
-                  copyDiv.style.height = '100%';
-                  parentDiv.appendChild(copyDiv);
-                  addCopy(copyDiv, asset);
-                }
-                element.src = imageUrl;
-                element.srcset = "";
-                element.style.objectFit = 'cover';
-                const sourceElement = element.parentElement.querySelector('source');
-                if (sourceElement) {
-                  sourceElement.remove();
-                }
+                handleImgTag(element, asset, elementSize, isMobileAsset);
               } else if (tagName === 'div' || tagName === 'section') {
-                element.style.backgroundImage = `url('${imageUrl}')`;
-                element.style.backgroundRepeat = 'no-repeat';
-                element.style.backgroundPosition = 'center';
-                element.style.backgroundSize = !isMobileAsset ? 'cover' : 'contain';
-                element.dataset.bg = "";
-                element.dataset.bgHidpi = "";
-                if (asset.copyType !== 'none') {
-                  addCopy(element, asset);
-                }
+                handleDivTag(element, asset, elementSize, isMobileAsset);
               } else if (tagName === 'video') {
-                const parentElement = element.parentNode;
-                const img = document.createElement('img');
-                img.src = imageUrl;
-                img.id = parentElement.id;
-                img.alt = parentElement.getAttribute('alt') || '';
-                img.className = parentElement.className;
-                // preserve the original image size
-                if (elementSize.width > 0 && elementSize.height > 0 && !isMobileAsset) {
-                  img.style.width = `${elementSize.width}px`;
-                  img.style.height = `${elementSize.height}px`;
-                }
-                if (parentElement.tagName.toLowerCase() === 'video-section') {
-                  // Replace the video-section with an image
-                  parentElement.parentNode.replaceChild(img, parentElement);
-                } else {
-                  // Replace just the video element with an image
-                  element.parentNode.replaceChild(img, element);
-                }
+                handleVideoTag(element, asset, elementSize, isMobileAsset);
               }
-              const imageLoadPromise = new Promise((resolve, reject) => {
-                const img = new Image();
-                img.onload = resolve;
-                img.onerror = reject;
-                img.src = imageUrl;
+              const loadImagePromise = createLoadImagePromise(imageUrl, element);
+              loadImagePromise.then(() => {
+                logger(`Image loaded successfully for experiment ${expId}`);
               });
-
-              imageLoadPromise
-                .then(() => {
-                  // Image has loaded successfully, we can count this experiment as loaded
-                  loadedExperiments++;
-                  checkAllExperimentsLoadedAndUnblockPage();
-                  logger(`Updated ${tagName} element for experiment:`, expId);
-                  logger(`Full element tag:`, element.outerHTML);
-                })
-                .catch((error) => {
-                  console.error(`Failed to load image for experiment ${expId}:`, error);
-                  // Even if image fails to load, we should count it as processed
-                  loadedExperiments++;
-                  checkAllExperimentsLoadedAndUnblockPage();
-                });
             } else {
               console.warn(`Unsupported element type for experiment ${expId}: ${tagName}`);
             }
