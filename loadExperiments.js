@@ -120,6 +120,28 @@ function dynamoDBRecordToJSON(record) {
   return result;
 }
 
+function getCachedActiveExperiments(customerId) {
+  const cached = localStorage.getItem('activeExperiments');
+  if (!cached) return null;
+
+  const parsedCache = JSON.parse(cached);
+  return parsedCache.customerId === customerId ? parsedCache : null;
+}
+
+async function fetchAndCacheActiveExperiments(customerId) {
+  const experiments = await fetch(`${activeExperimentsHost}/${customerId}`)
+    .then(res => res.json())
+    .then(json => dynamoDBRecordToJSON(json["Items"][0]));
+
+  localStorage.setItem('activeExperiments', JSON.stringify({ 
+    ...experiments, 
+    customerId,
+    timestamp: Date.now() 
+  }));
+
+  return experiments;
+}
+
 /**
  * Initialize and load experiments
  * @param {string} customerId - The customer ID
@@ -130,10 +152,11 @@ async function initializeAndLoadExperiments(customerId, enableLogging = false) {
 
   blockPage();
 
-  // fetch active experiments
-  const activeExperiments = await fetch(`${activeExperimentsHost}/${customerId}`)
-    .then(res => res.json())
-    .then(json => dynamoDBRecordToJSON(json["Items"][0]));
+  // Get active experiments from cache or fetch them
+  let activeExperiments = getCachedActiveExperiments(customerId);
+  if (!activeExperiments) {
+    activeExperiments = await fetchAndCacheActiveExperiments(customerId);
+  }
 
   logger('Active experiments:', activeExperiments);
   const posthogToken = activeExperiments.posthog_token;
