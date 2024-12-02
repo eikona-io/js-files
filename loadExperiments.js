@@ -473,7 +473,7 @@ async function loadExperiments(experimentsConfigs) {
       checkAllExperimentsLoadedAndUnblockPage();
       return;
     }
-
+    logger('Processing experiment:', expId);
     // process assets for the experiment and update the DOM
     for (const asset of experimentAssets) {
       const imageUrl = urlForImage(asset, variantKey);
