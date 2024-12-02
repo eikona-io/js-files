@@ -427,7 +427,6 @@ async function processExperiment(experimentConfig) {
     // Add to pending experiments instead of just returning
     pendingExperiments.add(experimentConfig);
     setupRetryMutationObserver();
-    incrementLoadedExperiments();
     return;
   }
   logger('Experiment variant:', expId, variantKey);
