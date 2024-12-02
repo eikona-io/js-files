@@ -461,19 +461,21 @@ async function loadExperiments(experimentsConfigs) {
     const isMultiAssetExperiment = nofAssets > 1 && nofElements === nofAssets;
     const isMultiAssetBroadcastExperiment = nofAssets > 1 && nofElements > nofAssets;
     const isSingleAssetExperiment = nofAssets === 1 && nofElements === 1;
-    logger('Experiment type:', expId, {
+    logger('Experiment type: nof', expId, {
       isBroadcastExperiment,
       isMultiAssetExperiment,
       isSingleAssetExperiment,
       isMultiAssetBroadcastExperiment
     });
+    logger('Experiment nof assets:', expId, nofAssets);
+    logger('Experiment nof elements:', expId, nofElements);
     if (!isBroadcastExperiment && !isMultiAssetExperiment && !isSingleAssetExperiment && !isMultiAssetBroadcastExperiment) {
       console.warn(`Mismatch in experiment ${expId}: ${nofAssets} assets for ${nofElements} elements`);
       loadedExperiments++;
       checkAllExperimentsLoadedAndUnblockPage();
       return;
     }
-    logger('Processing experiment:', expId);
+
     // process assets for the experiment and update the DOM
     for (const asset of experimentAssets) {
       const imageUrl = urlForImage(asset, variantKey);
