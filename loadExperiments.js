@@ -54,19 +54,20 @@ function urlForImage(asset, variantKey) {
   return `${sanityCdnUrl}/${imageId}?auto=format`;
 }
 
-async function fetchExperimentAssets(experimentId) {
+async function fetchExperimentAssets(experimentId, variantKey) {
   const query = encodeURIComponent(`*[_type == "experiment" && id == "${experimentId}"]`);
   let assets = await fetch(`${sanityClientUrl}?query=${query}`).then(res => res.json());
   assets = assets.result;
   logger('Fetched assets for experiment:', experimentId, assets);
-  // Prefetch images for all variants
+  // Prefetch images for relevant variant
   assets.forEach(asset => {
-    ['variant_a', 'variant_b', 'variant_c', 'variant_d'].forEach(variant => {
-      if (asset[variant]) {
-        const imageUrl = urlForImage(asset, variant);
-        prefetchImage(imageUrl);
-      }
-    });
+    if (asset[variantKey]) {
+      const imageUrl = urlForImage(asset, variantKey);
+      prefetchImage(imageUrl);
+    }
+    else {
+      logger('No variant key:', variantKey, "for asset:", asset);
+    }
   });
 
   return assets;
@@ -281,7 +282,14 @@ function getExperimentVariant(experimentConfig) {
   const variants = JSON.parse(localStorage.getItem('eikona-experiments-variants') || '{}');
   // update posthog about feature flag variant
   posthog.getFeatureFlag(expFQId);
-  return variants[expFQId];
+
+  const variant = variants[expFQId];
+  if (!variant) {
+    logger('No variant found for experiment:', expFQId);
+    return undefined;
+  }
+  const variantKey = variant === 'control' ? variant : `variant_${variant.slice(-1)}`;
+  return variantKey;
 }
 
 async function loadExperiments(experimentsConfigs) {
@@ -291,24 +299,6 @@ async function loadExperiments(experimentsConfigs) {
     return config.sitePath === currentPath;
   });
 
-
-  // Now fetch experiment assets in parallel after flags are loaded
-  const fetchAssetsPromises = relevantExperiments.map(config => {
-    const FQExpId = getFQExperimentId(config);
-    logger('Fetching assets for experiment:', FQExpId);
-    return fetchExperimentAssets(FQExpId).then(assets => ({ expId: config.expId, assets }));
-  });
-
-
-  // Wait for all assets to be fetched
-  const assetsResults = await Promise.all(fetchAssetsPromises);
-
-  // Map experiment IDs to their assets
-  const assetsByExpId = {};
-  for (const result of assetsResults) {
-    logger('Assets for experiment:', result.expId, result.assets);
-    assetsByExpId[result.expId] = result.assets;
-  }
 
   let loadedExperiments = 0;
   const totalExperiments = relevantExperiments.length;
@@ -338,15 +328,14 @@ async function loadExperiments(experimentsConfigs) {
     }
 
     // fetch variant key
-    const variant = getExperimentVariant(experimentConfig);
-    if (variant === undefined) {
+    const variantKey = getExperimentVariant(experimentConfig);
+    if (variantKey === undefined) {
       logger(`Experiment not found: ${expId}`);
       loadedExperiments++;
       checkAllExperimentsLoadedAndUnblockPage();
       return;
     }
-    const variantLetter = variant.slice(-1);
-    const variantKey = `variant_${variantLetter}`;
+
 
     let elements = [];
     xPaths.forEach(xpath => {
@@ -366,8 +355,8 @@ async function loadExperiments(experimentsConfigs) {
       notFoundExperiments.push(expId);
       return;
     }
-    logger('Experiment variant:', expId, variant);
-    if (variant === 'control') {
+    logger('Experiment variant:', expId, variantKey);
+    if (variantKey === 'control') {
       loadedExperiments++;
       checkAllExperimentsLoadedAndUnblockPage();
       return;
@@ -375,7 +364,9 @@ async function loadExperiments(experimentsConfigs) {
     removeTextFromElements(textElements);
 
     // fetch assets for the experiment
-    const experimentAssets = assetsByExpId[expId];
+    const FQExpId = getFQExperimentId(experimentConfig);
+    logger('Fetching assets for experiment:', FQExpId, 'with variant:', variantKey);
+    const experimentAssets = await fetchExperimentAssets(FQExpId, variantKey);
     if (!experimentAssets) {
       logger(`No assets found for experiment ${expId}`);
       loadedExperiments++;
