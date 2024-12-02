@@ -203,6 +203,8 @@ async function initializeAndLoadExperiments(customerId, enableLogging = false) {
     return;
   }
 
+  userId = generateUserId();
+
   // Only initialize PostHog if it hasn't been initialized yet
   if (!window.posthog.__loaded) {
     logger('Initializing PostHog...');
@@ -232,7 +234,6 @@ async function initializeAndLoadExperiments(customerId, enableLogging = false) {
     }
   }
 
-  userId = generateUserId();
   loadExperimentsWhenReady();
 
   // Set a flag to indicate that loadExperiments has been initialized
