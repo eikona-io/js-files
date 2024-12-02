@@ -112,6 +112,7 @@ function urlForImage(asset, variantKey) {
   const preferedVariant = isMobile ? `${variantKey}_mobile` : variantKey;
   const source = asset[preferedVariant] ? asset[preferedVariant] : asset[variantKey];
   if (!source) {
+    logger('No source for image:', asset, variantKey);
     return null;
   }
   const imageIdRaw = source.asset['_ref'];
@@ -467,8 +468,6 @@ async function loadExperiments(experimentsConfigs) {
       isSingleAssetExperiment,
       isMultiAssetBroadcastExperiment
     });
-    logger('Experiment nof assets:', expId, nofAssets);
-    logger('Experiment nof elements:', expId, nofElements);
     if (!isBroadcastExperiment && !isMultiAssetExperiment && !isSingleAssetExperiment && !isMultiAssetBroadcastExperiment) {
       console.warn(`Mismatch in experiment ${expId}: ${nofAssets} assets for ${nofElements} elements`);
       loadedExperiments++;
