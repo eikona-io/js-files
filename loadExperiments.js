@@ -294,7 +294,7 @@ function getFQExperimentId(experimentConfig) {
 }
 function generateHash() {
   // generate a hash between 0 and maxVariantAllocationDomain
-  const hash = murmurHash.x86.hash32(userId, experimentVariantsSeed) / (2 ** 32 - 1);
+  const hash = murmurHash3.x86.hash32(userId, experimentVariantsSeed) / (2 ** 32 - 1);
   return Math.floor(maxVariantAllocationDomain * hash);
 }
 
