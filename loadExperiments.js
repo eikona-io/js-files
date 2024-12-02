@@ -307,7 +307,7 @@ async function loadExperiments(experimentsConfigs) {
 
   function checkAllExperimentsLoadedAndUnblockPage() {
     if (loadedExperiments === totalExperiments) {
-      unblockPage();
+      window.unblockPage();
     }
   }
 
