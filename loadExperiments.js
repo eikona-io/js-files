@@ -9,8 +9,9 @@ if (toolbarJSON) {
 let sanityClientUrl;
 let sanityCdnUrl;
 let logger;
-let loadedExperiments = 0;
 let totalExperiments;
+let userId;
+let loadedExperiments = 0;
 const isMobile = window.innerWidth <= 768;
 let pendingExperiments = new Set();
 const posthogHost = "https://ph.eikona.io";
@@ -19,6 +20,7 @@ const experimentVariantsSeed = 1234567890;
 const experimentVariantsLocalStorageKey = 'eikona.experiments.variants';
 const activeExperimentsLocalStorageKey = 'eikona.active.experiments';
 const eikonaUserIdLocalStorageKey = 'eikona.user.id';
+const maxVariantAllocationDomain = 99999;
 
 // Function to block specified paths
 function blockPage() {
@@ -42,6 +44,19 @@ function blockPage() {
 
   // Add unblockPage function for later use
   window.unblockPage = show;
+}
+
+const generateUUID = function () {
+  // Primary method using crypto.randomUUID()
+  // for modern browsers
+  if (window.crypto && crypto.randomUUID) {
+    return crypto.randomUUID();
+  }
+  // Fallback using crypto.getRandomValues()
+  // for older browsers
+  return ([1e7] + -1e3 + -4e3 + -8e3 + -1e11).replace(/[018]/g, c =>
+    (c ^ crypto.getRandomValues(new Uint8Array(1))[0] & 15 >> c / 4).toString(16)
+  );
 }
 
 
@@ -81,6 +96,15 @@ async function fetchExperimentAssets(experimentId, variantKey) {
   });
 
   return assets;
+}
+
+function generateUserId() {
+  if (localStorage.getItem(eikonaUserIdLocalStorageKey)) {
+    return localStorage.getItem(eikonaUserIdLocalStorageKey);
+  }
+  const userId = generateUUID();
+  localStorage.setItem(eikonaUserIdLocalStorageKey, userId);
+  return userId;
 }
 
 function dynamoDBRecordToJSON(record) {
@@ -208,6 +232,7 @@ async function initializeAndLoadExperiments(customerId, enableLogging = false) {
     }
   }
 
+  userId = generateUserId();
   loadExperimentsWhenReady();
 
   // Set a flag to indicate that loadExperiments has been initialized
@@ -267,13 +292,21 @@ function getFQExperimentId(experimentConfig) {
   const experimentAudience = getExperimentAudience(experimentConfig);
   return experimentAudience === 'global' ? experimentConfig.expId : `${experimentConfig.expId}-${experimentAudience}`;
 }
-function generateHash(seed, str) {
-  const hash = murmurHash.x86.hash32(str, seed) / (2 ** 32 - 1);
-  return Math.floor(99999 * hash);
+function generateHash() {
+  // generate a hash between 0 and maxVariantAllocationDomain
+  const hash = murmurHash.x86.hash32(userId, experimentVariantsSeed) / (2 ** 32 - 1);
+  return Math.floor(maxVariantAllocationDomain * hash);
 }
 
 function chooseRandomIndex(variants) {
-  return Math.floor(Math.random() * variants.length);
+  const hash = generateHash();
+  for (let i = 0; i < variants.length; i++) {
+    const [minAllocation, maxAllocation] = variants[i].allocation;
+    if (hash >= minAllocation && hash <= maxAllocation) {
+      return i;
+    }
+  }
+  return variants.length - 1;
 }
 function evaluateExperimentVariants(experimentsConfigs) {
   if (localStorage.getItem(experimentVariantsLocalStorageKey)) {
