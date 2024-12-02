@@ -514,6 +514,11 @@ function setupRetryMutationObserver() {
   // Only set up once
   if (window._experimentObserver) return;
 
+  // Wait for body to be available
+  if (!document.body) {
+    document.addEventListener('DOMContentLoaded', () => setupMutationObserver());
+    return;
+  }
   const observer = new MutationObserver(() => {
     if (pendingExperiments.size === 0) {
       observer.disconnect();
