@@ -15,6 +15,10 @@ const isMobile = window.innerWidth <= 768;
 let pendingExperiments = new Set();
 const posthogHost = "https://ph.eikona.io";
 const activeExperimentsHost = `https://d3fjltzrrgg4xq.cloudfront.net/production/active-experiments`;
+const experimentVariantsSeed = 1234567890;
+const experimentVariantsLocalStorageKey = 'eikona.experiments.variants';
+const activeExperimentsLocalStorageKey = 'eikona.active.experiments';
+const eikonaUserIdLocalStorageKey = 'eikona.user.id';
 
 // Function to block specified paths
 function blockPage() {
@@ -126,7 +130,7 @@ function dynamoDBRecordToJSON(record) {
 }
 
 function getCachedActiveExperiments(customerId) {
-  const cached = localStorage.getItem('activeExperiments');
+  const cached = localStorage.getItem(activeExperimentsLocalStorageKey);
   if (!cached) return null;
 
   const parsedCache = JSON.parse(cached);
@@ -138,7 +142,7 @@ async function fetchAndCacheActiveExperiments(customerId) {
     .then(res => res.json())
     .then(json => dynamoDBRecordToJSON(json["Items"][0]));
 
-  localStorage.setItem('activeExperiments', JSON.stringify({
+  localStorage.setItem(activeExperimentsLocalStorageKey, JSON.stringify({
     ...experiments,
     customerId,
     timestamp: Date.now()
@@ -263,10 +267,17 @@ function getFQExperimentId(experimentConfig) {
   const experimentAudience = getExperimentAudience(experimentConfig);
   return experimentAudience === 'global' ? experimentConfig.expId : `${experimentConfig.expId}-${experimentAudience}`;
 }
+function generateHash(seed, str) {
+  const hash = murmurHash.x86.hash32(str, seed) / (2 ** 32 - 1);
+  return Math.floor(99999 * hash);
+}
 
+function chooseRandomIndex(variants) {
+  return Math.floor(Math.random() * variants.length);
+}
 function evaluateExperimentVariants(experimentsConfigs) {
-  if (localStorage.getItem('eikona-experiments-variants')) {
-    return JSON.parse(localStorage.getItem('eikona-experiments-variants'));
+  if (localStorage.getItem(experimentVariantsLocalStorageKey)) {
+    return JSON.parse(localStorage.getItem(experimentVariantsLocalStorageKey));
   }
   results = {};
   experimentsConfigs.forEach(config => {
@@ -274,18 +285,18 @@ function evaluateExperimentVariants(experimentsConfigs) {
     const audience = getExperimentAudience(config);
     const variants = config.variant_groups.find(group => group.audience_id === audience).variants;
     if (variants.length > 0) {
-      const randomIndex = Math.floor(Math.random() * variants.length);
+      const randomIndex = chooseRandomIndex(variants);
       results[expFQId] = variants[randomIndex]["id"];
     }
   });
   // Store variants in local storage
-  localStorage.setItem('eikona-experiments-variants', JSON.stringify(results));
+  localStorage.setItem(experimentVariantsLocalStorageKey, JSON.stringify(results));
   return results;
 }
 
 function getExperimentVariant(experimentConfig) {
   const expFQId = getFQExperimentId(experimentConfig);
-  const variants = JSON.parse(localStorage.getItem('eikona-experiments-variants') || '{}');
+  const variants = JSON.parse(localStorage.getItem(experimentVariantsLocalStorageKey) || '{}');
   // update posthog about feature flag variant
   posthog.getFeatureFlag(expFQId);
 
