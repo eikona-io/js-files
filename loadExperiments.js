@@ -12,6 +12,7 @@ let logger;
 let loadedExperiments = 0;
 let totalExperiments;
 const isMobile = window.innerWidth <= 768;
+let pendingExperiments = new Set();
 const posthogHost = "https://ph.eikona.io";
 const activeExperimentsHost = `https://d3fjltzrrgg4xq.cloudfront.net/production/active-experiments`;
 
@@ -384,6 +385,158 @@ function createLoadImagePromise(imageUrl, element) {
   });
 }
 
+// Modify the early return for missing elements
+async function processExperiment(experimentConfig) {
+  const {
+    expId = '',
+    xPaths = [],
+    sitePath = '',
+    textXPaths = [],
+    audiences = [],
+    variants = [],
+  } = experimentConfig;
+
+  // fetch variant key
+  const variantKey = getExperimentVariant(experimentConfig);
+  if (variantKey === undefined) {
+    logger(`Experiment not found: ${expId}`);
+    incrementLoadedExperiments();
+    return;
+  }
+
+
+  let elements = [];
+  xPaths.forEach(xpath => {
+    const matchingElements = evaluateXPathWithFallback(xpath);
+    elements = elements.concat(matchingElements);
+  });
+  let textElements = [];
+  textXPaths.forEach(xpath => {
+    const matchingElements = evaluateXPathWithFallback(xpath);
+    textElements = textElements.concat(matchingElements);
+  });
+
+  logger('Found elements for experiment:', expId, elements);
+  logger('Found text elements for experiment:', expId, textElements);
+  const nofElements = elements.length;
+  if (nofElements === 0) {
+    logger(`No elements found for experiment ${expId}`);
+    // Add to pending experiments instead of just returning
+    pendingExperiments.add(experimentConfig);
+    setupRetryMutationObserver();
+    incrementLoadedExperiments();
+    return;
+  }
+  logger('Experiment variant:', expId, variantKey);
+  if (variantKey === 'control') {
+    incrementLoadedExperiments();
+    return;
+  }
+  removeTextFromElements(textElements);
+
+  // fetch assets for the experiment
+  const FQExpId = getFQExperimentId(experimentConfig);
+  logger('Fetching assets for experiment:', FQExpId, 'with variant:', variantKey);
+  const experimentAssets = await fetchExperimentAssets(FQExpId, variantKey);
+  if (!experimentAssets) {
+    logger(`No assets found for experiment ${expId}`);
+    incrementLoadedExperiments();
+    return;
+  }
+
+  // check assets constraints and experiment type
+  const nofAssets = experimentAssets.length;
+  const isBroadcastExperiment = nofAssets === 1 && nofElements > 1;
+  const isMultiAssetExperiment = nofAssets > 1 && nofElements === nofAssets;
+  const isMultiAssetBroadcastExperiment = nofAssets > 1 && nofElements > nofAssets;
+  const isSingleAssetExperiment = nofAssets === 1 && nofElements === 1;
+  logger('Experiment type: nof', expId, {
+    isBroadcastExperiment,
+    isMultiAssetExperiment,
+    isSingleAssetExperiment,
+    isMultiAssetBroadcastExperiment
+  });
+  if (!isBroadcastExperiment && !isMultiAssetExperiment && !isSingleAssetExperiment && !isMultiAssetBroadcastExperiment) {
+    console.warn(`Mismatch in experiment ${expId}: ${nofAssets} assets for ${nofElements} elements`);
+    incrementLoadedExperiments();
+    return;
+  }
+
+  // process assets for the experiment and update the DOM
+  for (const asset of experimentAssets) {
+    const imageUrl = urlForImage(asset, variantKey);
+    // mobile assets are optional
+    const isMobileAsset = isMobile ? asset.hasOwnProperty(`${variantKey}_mobile`) : false;
+    if (imageUrl) {
+      const assetId = asset.id;
+      logger('Processing asset:', assetId, 'for experiment:', expId);
+      elements.forEach(element => {
+        logger('Processing element:', element, 'for experiment:', expId);
+        // check that we are changing the right element
+        // (the experiments in the CMS have the same ID or alt text as the elements)
+        // TODO: enable multi-asset experiments with xpath in sanity
+        if (isSingleAssetExperiment || isBroadcastExperiment) {
+          const tagName = element.tagName.toLowerCase();
+          const elementSize = getElementSizeOnScreen(element);
+          // preserve the original image size
+          // only if not a mobile asset
+          if (elementSize.width > 0 && elementSize.height > 0 && !isMobileAsset) {
+            element.style.width = `${elementSize.width}px`;
+            element.style.height = `${elementSize.height}px`;
+          }
+          // change the element to the new image
+          // each element type has a different way to change the image
+          if (['img', 'div', 'video', 'section'].includes(tagName)) {
+            if (tagName === 'img') {
+              handleImgTag(element, asset, elementSize, isMobileAsset, imageUrl);
+            } else if (tagName === 'div' || tagName === 'section') {
+              handleDivTag(element, asset, elementSize, isMobileAsset, imageUrl);
+            } else if (tagName === 'video') {
+              handleVideoTag(element, asset, elementSize, isMobileAsset, imageUrl);
+            }
+            const loadImagePromise = createLoadImagePromise(imageUrl, element);
+            loadImagePromise.then(() => {
+              logger(`Image loaded successfully for experiment ${expId}`);
+            });
+          } else {
+            console.warn(`Unsupported element type for experiment ${expId}: ${tagName}`);
+          }
+        }
+      });
+    }
+  }
+}
+
+function setupRetryMutationObserver() {
+  // Only set up once
+  if (window._experimentObserver) return;
+
+  const observer = new MutationObserver(() => {
+    if (pendingExperiments.size === 0) {
+      observer.disconnect();
+      window._experimentObserver = null;
+      return;
+    }
+
+    // Try processing all pending experiments again
+    const experimentsToRetry = Array.from(pendingExperiments);
+    experimentsToRetry.forEach(experiment => {
+      // Remove from pending before processing to avoid potential duplicates
+      pendingExperiments.delete(experiment);
+      processExperiment(experiment).catch(err =>
+        console.error(`Error processing experiment ${experiment.expId}:`, err)
+      );
+    });
+  });
+
+  observer.observe(document.body, {
+    childList: true,
+    subtree: true
+  });
+
+  window._experimentObserver = observer;
+}
+
 async function loadExperiments(experimentsConfigs) {
   const currentPath = window.location.pathname;
   logger('Current path:', currentPath);
@@ -396,130 +549,6 @@ async function loadExperiments(experimentsConfigs) {
   totalExperiments = relevantExperiments.length;
   logger('Total experiments for page:', totalExperiments);
 
-
-  async function processExperiment(experimentConfig) {
-    const {
-      expId = '',
-      xPaths = [],
-      sitePath = '',
-      textXPaths = [],
-      audiences = [],
-      variants = [],
-    } = experimentConfig;
-
-    // Check if the current path matches the experiment's sitePath
-    if (sitePath !== currentPath) {
-      logger(`Experiment ${expId} skipped: current path does not match ${sitePath}`);
-      return;
-    }
-
-    // fetch variant key
-    const variantKey = getExperimentVariant(experimentConfig);
-    if (variantKey === undefined) {
-      logger(`Experiment not found: ${expId}`);
-      incrementLoadedExperiments();
-      return;
-    }
-
-
-    let elements = [];
-    xPaths.forEach(xpath => {
-      const matchingElements = evaluateXPathWithFallback(xpath);
-      elements = elements.concat(matchingElements);
-    });
-    let textElements = [];
-    textXPaths.forEach(xpath => {
-      const matchingElements = evaluateXPathWithFallback(xpath);
-      textElements = textElements.concat(matchingElements);
-    });
-
-    logger('Found elements for experiment:', expId, elements);
-    logger('Found text elements for experiment:', expId, textElements);
-    const nofElements = elements.length;
-    if (nofElements === 0) {
-      logger(`No elements found for experiment ${expId}`);
-      incrementLoadedExperiments();
-      return;
-    }
-    logger('Experiment variant:', expId, variantKey);
-    if (variantKey === 'control') {
-      incrementLoadedExperiments();
-      return;
-    }
-    removeTextFromElements(textElements);
-
-    // fetch assets for the experiment
-    const FQExpId = getFQExperimentId(experimentConfig);
-    logger('Fetching assets for experiment:', FQExpId, 'with variant:', variantKey);
-    const experimentAssets = await fetchExperimentAssets(FQExpId, variantKey);
-    if (!experimentAssets) {
-      logger(`No assets found for experiment ${expId}`);
-      incrementLoadedExperiments();
-      return;
-    }
-
-    // check assets constraints and experiment type
-    const nofAssets = experimentAssets.length;
-    const isBroadcastExperiment = nofAssets === 1 && nofElements > 1;
-    const isMultiAssetExperiment = nofAssets > 1 && nofElements === nofAssets;
-    const isMultiAssetBroadcastExperiment = nofAssets > 1 && nofElements > nofAssets;
-    const isSingleAssetExperiment = nofAssets === 1 && nofElements === 1;
-    logger('Experiment type: nof', expId, {
-      isBroadcastExperiment,
-      isMultiAssetExperiment,
-      isSingleAssetExperiment,
-      isMultiAssetBroadcastExperiment
-    });
-    if (!isBroadcastExperiment && !isMultiAssetExperiment && !isSingleAssetExperiment && !isMultiAssetBroadcastExperiment) {
-      console.warn(`Mismatch in experiment ${expId}: ${nofAssets} assets for ${nofElements} elements`);
-      incrementLoadedExperiments();
-      return;
-    }
-
-    // process assets for the experiment and update the DOM
-    for (const asset of experimentAssets) {
-      const imageUrl = urlForImage(asset, variantKey);
-      // mobile assets are optional
-      const isMobileAsset = isMobile ? asset.hasOwnProperty(`${variantKey}_mobile`) : false;
-      if (imageUrl) {
-        const assetId = asset.id;
-        logger('Processing asset:', assetId, 'for experiment:', expId);
-        elements.forEach(element => {
-          logger('Processing element:', element, 'for experiment:', expId);
-          // check that we are changing the right element
-          // (the experiments in the CMS have the same ID or alt text as the elements)
-          // TODO: enable multi-asset experiments with xpath in sanity
-          if (isSingleAssetExperiment || isBroadcastExperiment) {
-            const tagName = element.tagName.toLowerCase();
-            const elementSize = getElementSizeOnScreen(element);
-            // preserve the original image size
-            // only if not a mobile asset
-            if (elementSize.width > 0 && elementSize.height > 0 && !isMobileAsset) {
-              element.style.width = `${elementSize.width}px`;
-              element.style.height = `${elementSize.height}px`;
-            }
-            // change the element to the new image
-            // each element type has a different way to change the image
-            if (['img', 'div', 'video', 'section'].includes(tagName)) {
-              if (tagName === 'img') {
-                handleImgTag(element, asset, elementSize, isMobileAsset, imageUrl);
-              } else if (tagName === 'div' || tagName === 'section') {
-                handleDivTag(element, asset, elementSize, isMobileAsset, imageUrl);
-              } else if (tagName === 'video') {
-                handleVideoTag(element, asset, elementSize, isMobileAsset, imageUrl);
-              }
-              const loadImagePromise = createLoadImagePromise(imageUrl, element);
-              loadImagePromise.then(() => {
-                logger(`Image loaded successfully for experiment ${expId}`);
-              });
-            } else {
-              console.warn(`Unsupported element type for experiment ${expId}: ${tagName}`);
-            }
-          }
-        });
-      }
-    }
-  }
 
   try {
     await Promise.all(relevantExperiments.map(processExperiment));
