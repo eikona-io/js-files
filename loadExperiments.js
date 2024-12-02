@@ -352,7 +352,6 @@ function getExperimentVariant(experimentConfig) {
   // const variants = JSON.parse(localStorage.getItem('eikona-experiments-variants') || '{}');
   // update posthog about feature flag variant
   posthog.getFeatureFlag(expFQId);
-  logger('PostHog Feature flag:', expFQId, posthogVariant);
   // logger('Local storage variant:', expFQId, variants[expFQId]);
   return posthogVariant;
 }
