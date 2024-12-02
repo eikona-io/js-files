@@ -21,15 +21,13 @@ function blockPage() {
   const style = document.createElement('style');
   style.innerHTML = 'body { opacity: 0 !important; }';
 
-  // Function to hide body
   const hide = () => document.head.appendChild(style);
-
-  // Function to show body
   const show = () => style.remove();
 
   hide();
 
   // Set timeout to show body after 2s
+  // if all hell broke loose
   setTimeout(show, 2000);
 
   // Add unblockPage function for later use
@@ -133,10 +131,10 @@ async function fetchAndCacheActiveExperiments(customerId) {
     .then(res => res.json())
     .then(json => dynamoDBRecordToJSON(json["Items"][0]));
 
-  localStorage.setItem('activeExperiments', JSON.stringify({ 
-    ...experiments, 
+  localStorage.setItem('activeExperiments', JSON.stringify({
+    ...experiments,
     customerId,
-    timestamp: Date.now() 
+    timestamp: Date.now()
   }));
 
   return experiments;
@@ -205,13 +203,6 @@ async function initializeAndLoadExperiments(customerId, enableLogging = false) {
   window.loadExperimentsInitialized = true;
 }
 
-const hideElements = (elements) => {
-  elements.forEach(element => {
-    element.style.visibility = 'hidden';
-    element.style.opacity = '0';
-  });
-}
-
 const getElementSizeOnScreen = (element) => {
   const rect = element.getBoundingClientRect();
   let width = Math.round(rect.width);
@@ -223,13 +214,6 @@ const getElementSizeOnScreen = (element) => {
   }
 
   return { width, height };
-}
-
-const showElement = (element) => {
-  element.style.visibility = 'visible';
-  setTimeout(() => {
-    element.style.opacity = '1';
-  }, 1); // Small delay to ensure the transition is applied
 }
 
 const addCopy = (div, asset) => {
@@ -270,7 +254,7 @@ function getExperimentAudience(experimentConfig) {
 
 function getFQExperimentId(experimentConfig) {
   const experimentAudience = getExperimentAudience(experimentConfig);
-  return String(experimentConfig.expId) + (experimentAudience === 'global' ? '' : '-' + experimentAudience);
+  return experimentAudience === 'global' ? experimentConfig.expId : `${experimentConfig.expId}-${experimentAudience}`;
 }
 
 function evaluateExperimentVariants(experimentsConfigs) {
@@ -388,7 +372,6 @@ async function loadExperiments(experimentsConfigs) {
       checkAllExperimentsLoadedAndUnblockPage();
       return;
     }
-    hideElements(elements);
     removeTextFromElements(textElements);
 
     // fetch assets for the experiment
@@ -515,14 +498,12 @@ async function loadExperiments(experimentsConfigs) {
                   checkAllExperimentsLoadedAndUnblockPage();
                   logger(`Updated ${tagName} element for experiment:`, expId);
                   logger(`Full element tag:`, element.outerHTML);
-                  showElement(element);
                 })
                 .catch((error) => {
                   console.error(`Failed to load image for experiment ${expId}:`, error);
                   // Even if image fails to load, we should count it as processed
                   loadedExperiments++;
                   checkAllExperimentsLoadedAndUnblockPage();
-                  showElement(element);
                 });
             } else {
               console.warn(`Unsupported element type for experiment ${expId}: ${tagName}`);
