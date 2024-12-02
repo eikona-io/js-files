@@ -343,17 +343,16 @@ function evaluateExperimentVariants(experimentsConfigs) {
     }
   });
   // Store variants in local storage
-  // localStorage.setItem('eikona-experiments-variants', JSON.stringify(results));
+  localStorage.setItem('eikona-experiments-variants', JSON.stringify(results));
   return results;
 }
 
 function getExperimentVariant(experimentConfig) {
   const expFQId = getFQExperimentId(experimentConfig);
-  // const variants = JSON.parse(localStorage.getItem('eikona-experiments-variants') || '{}');
+  const variants = JSON.parse(localStorage.getItem('eikona-experiments-variants') || '{}');
   // update posthog about feature flag variant
   posthog.getFeatureFlag(expFQId);
-  // logger('Local storage variant:', expFQId, variants[expFQId]);
-  return posthogVariant;
+  return variants[expFQId];
 }
 
 async function loadExperiments(experimentsConfigs) {
