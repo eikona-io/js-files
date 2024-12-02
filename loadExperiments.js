@@ -31,7 +31,10 @@ function blockPage() {
 
   // Set timeout to show body after 2s
   // if all hell broke loose
-  setTimeout(show, 2000);
+  setTimeout(() => {
+    show();
+    logger('Unblocked page after 2s');
+  }, 2000);
 
   // Add unblockPage function for later use
   window.unblockPage = show;
