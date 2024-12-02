@@ -31,7 +31,7 @@ function blockPage() {
   setTimeout(show, 2000);
 
   // Add unblockPage function for later use
-  document.unblockPage = show;
+  window.unblockPage = show;
 }
 
 
@@ -302,12 +302,11 @@ async function loadExperiments(experimentsConfigs) {
 
   let loadedExperiments = 0;
   const totalExperiments = relevantExperiments.length;
-  let notFoundExperiments = [];
   logger('Total experiments for page:', totalExperiments);
 
   function checkAllExperimentsLoadedAndUnblockPage() {
     if (loadedExperiments === totalExperiments) {
-      window.unblockPage();
+      unblockPage();
     }
   }
 
@@ -352,7 +351,6 @@ async function loadExperiments(experimentsConfigs) {
     logger('Found text elements for experiment:', expId, textElements);
     const nofElements = elements.length;
     if (nofElements === 0) {
-      notFoundExperiments.push(expId);
       return;
     }
     logger('Experiment variant:', expId, variantKey);
@@ -505,41 +503,19 @@ async function loadExperiments(experimentsConfigs) {
     }
   }
 
-  async function retryNotFoundExperiments() {
-    const notFoundExperimentsCopy = [...notFoundExperiments];
-    notFoundExperiments = [];
-    for (const expId of notFoundExperimentsCopy) {
-      logger(`Retrying experiment: ${expId}`);
-      await processExperiment(relevantExperiments.find(config => config.expId === expId));
-    };
-
-    if (notFoundExperiments.length > 0) {
-      setTimeout(() => {
-        retryNotFoundExperiments();
-      }, 100);
-    } else {
-      checkAllExperimentsLoadedAndUnblockPage();
-    }
-  }
-
   try {
     await Promise.all(relevantExperiments.map(processExperiment));
   } catch (error) {
     console.error('Error in loadExperiments:', error);
     unblockPage();
   } finally {
-    if (notFoundExperiments.length > 0) {
-      setTimeout(() => {
-        retryNotFoundExperiments();
-      }, 500);
-    }
     checkAllExperimentsLoadedAndUnblockPage();
   }
 };
 
 function unblockPage() {
   logger("All relevant experiments loaded. Unblocking page.");
-  window.unblockSignal();
+  window.unblockPage();
 }
 
 function removeTextFromElements(textElements) {
