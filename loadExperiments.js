@@ -176,20 +176,7 @@ async function initializeAndLoadExperiments(customerId, enableLogging = false) {
     }
   }
 
-  // Check if blockPages has already run
-  if (window.blockPagesLoaded) {
-    logger('blockPages already loaded, proceeding with experiments');
-    loadExperimentsWhenReady();
-  } else {
-    logger('Waiting for blockPages to load...');
-    // If not, wait for the custom event
-    window.addEventListener('blockPagesLoaded', function onBlockPagesLoaded() {
-      logger('blockPagesLoaded event received, loading experiments');
-      loadExperimentsWhenReady();
-      // Remove the event listener to avoid multiple calls
-      window.removeEventListener('blockPagesLoaded', onBlockPagesLoaded);
-    });
-  }
+  loadExperimentsWhenReady();
 
   // Set a flag to indicate that loadExperiments has been initialized
   window.loadExperimentsInitialized = true;
