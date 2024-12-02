@@ -219,14 +219,6 @@ async function initializeAndLoadExperiments(customerId, enableLogging = false) {
         posthog.featureFlags.override(experimentsVariants);
       }
     });
-
-    const startTime = performance.now();
-    posthog.onFeatureFlags(() => {
-      const endTime = performance.now();
-      logger(`PostHog feature flags loaded in ${endTime - startTime}ms`);
-      const variant = posthog.getFeatureFlag(getFQExperimentId(experimentsConfigs[0]));
-      logger('Experiment variant:', getFQExperimentId(experimentsConfigs[0]), variant);
-    });
   }
   // Initialize Sanity
   initializeSanity(sanityProjectId, dataset);
