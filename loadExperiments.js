@@ -295,6 +295,7 @@ function getFQExperimentId(experimentConfig) {
 function generateHash() {
   // generate a hash between 0 and maxVariantAllocationDomain
   const hash = murmurHash3.x86.hash32(userId, experimentVariantsSeed) / (2 ** 32 - 1);
+  logger('Generated hash:', hash);
   return Math.floor(maxVariantAllocationDomain * hash);
 }
 
@@ -302,6 +303,7 @@ function chooseRandomIndex(variants) {
   const hash = generateHash();
   for (let i = 0; i < variants.length; i++) {
     const [minAllocation, maxAllocation] = variants[i].allocation;
+    logger('Checking variant:', variants[i], 'with allocation:', minAllocation, maxAllocation);
     if (hash >= minAllocation && hash <= maxAllocation) {
       return i;
     }
