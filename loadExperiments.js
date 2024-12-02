@@ -294,7 +294,7 @@ function getExperimentVariant(experimentConfig) {
   return variantKey;
 }
 
-function handleImgTag(element, asset, elementSize, isMobileAsset) {
+function handleImgTag(element, asset, elementSize, isMobileAsset, imageUrl) {
   if (asset.copyType !== 'none') {
     const parentDiv = document.createElement('div');
     parentDiv.style.position = 'relative';
@@ -323,7 +323,7 @@ function handleImgTag(element, asset, elementSize, isMobileAsset) {
   }
 }
 
-function handleDivTag(element, asset, elementSize, isMobileAsset) {
+function handleDivTag(element, asset, elementSize, isMobileAsset, imageUrl) {
   element.style.backgroundImage = `url('${imageUrl}')`;
   element.style.backgroundRepeat = 'no-repeat';
   element.style.backgroundPosition = 'center';
@@ -335,7 +335,7 @@ function handleDivTag(element, asset, elementSize, isMobileAsset) {
   }
 }
 
-function handleVideoTag(element, asset, elementSize, isMobileAsset) {
+function handleVideoTag(element, asset, elementSize, isMobileAsset, imageUrl) {
   const parentElement = element.parentNode;
   const img = document.createElement('img');
   img.src = imageUrl;
@@ -502,11 +502,11 @@ async function loadExperiments(experimentsConfigs) {
             // each element type has a different way to change the image
             if (['img', 'div', 'video', 'section'].includes(tagName)) {
               if (tagName === 'img') {
-                handleImgTag(element, asset, elementSize, isMobileAsset);
+                handleImgTag(element, asset, elementSize, isMobileAsset, imageUrl);
               } else if (tagName === 'div' || tagName === 'section') {
-                handleDivTag(element, asset, elementSize, isMobileAsset);
+                handleDivTag(element, asset, elementSize, isMobileAsset, imageUrl);
               } else if (tagName === 'video') {
-                handleVideoTag(element, asset, elementSize, isMobileAsset);
+                handleVideoTag(element, asset, elementSize, isMobileAsset, imageUrl);
               }
               const loadImagePromise = createLoadImagePromise(imageUrl, element);
               loadImagePromise.then(() => {
