@@ -511,15 +511,18 @@ async function processExperiment(experimentConfig) {
 }
 
 function setupRetryMutationObserver() {
+  logger('Setting up retry mutation observer');
   // Only set up once
   if (window._experimentObserver) return;
 
   // Wait for body to be available
   if (!document.body) {
-    document.addEventListener('DOMContentLoaded', () => setupMutationObserver());
+    logger('Waiting for body to be available');
+    document.addEventListener('DOMContentLoaded', () => setupRetryMutationObserver());
     return;
   }
   const observer = new MutationObserver(() => {
+    logger('Mutation observer triggered');
     if (pendingExperiments.size === 0) {
       observer.disconnect();
       window._experimentObserver = null;
