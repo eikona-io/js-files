@@ -556,6 +556,18 @@ async function processExperiment(experimentConfig) {
   }
 }
 
+function retryExperiments() {
+  const experimentsToRetry = Array.from(pendingExperiments);
+  logger('Retrying experiments:', experimentsToRetry);
+  experimentsToRetry.forEach(experiment => {
+    // Remove from pending before processing to avoid potential duplicates
+    pendingExperiments.delete(experiment);
+    processExperiment(experiment).catch(err =>
+      console.error(`Error processing experiment ${experiment.expId}:`, err)
+    );
+  });
+}
+
 function setupRetryMutationObserver() {
   logger('Setting up retry mutation observer, experiments pending:', pendingExperiments);
   // Only set up once
@@ -567,17 +579,7 @@ function setupRetryMutationObserver() {
     document.addEventListener('DOMContentLoaded', () => setupRetryMutationObserver());
     return;
   }
-  const retryExperiments = () => {
-    const experimentsToRetry = Array.from(pendingExperiments);
-    logger('Retrying experiments:', experimentsToRetry);
-    experimentsToRetry.forEach(experiment => {
-      // Remove from pending before processing to avoid potential duplicates
-      pendingExperiments.delete(experiment);
-      processExperiment(experiment).catch(err =>
-        console.error(`Error processing experiment ${experiment.expId}:`, err)
-      );
-    });
-  }
+
   const observer = new MutationObserver(() => {
     logger('Mutation observer triggered');
     logger('Pending experiments:', pendingExperiments);
