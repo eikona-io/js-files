@@ -13,7 +13,7 @@ let totalExperiments;
 let userId;
 let loadedExperiments = 0;
 const isMobile = window.innerWidth <= 768;
-let pendingExperiments = new Set();
+let pendingExperiments = [];
 const posthogHost = "https://ph.eikona.io";
 const activeExperimentsHost = `https://d3fjltzrrgg4xq.cloudfront.net/production/active-experiments`;
 const experimentVariantsSeed = 1234567890;
@@ -471,9 +471,7 @@ async function processExperiment(experimentConfig) {
   const nofElements = elements.length;
   if (nofElements === 0) {
     logger(`No elements found for experiment ${expId}`);
-    // Add to pending experiments instead of just returning
     pendingExperiments.add(experimentConfig);
-    setupRetryMutationObserver();
     return;
   }
   logger('Experiment variant:', expId, variantKey);
@@ -556,19 +554,6 @@ async function processExperiment(experimentConfig) {
   }
 }
 
-function retryExperiments(experiments) {
-  logger('Retrying experiments:', experiments);
-  let experimentsToRetry = Array.from(experiments);
-  logger('Retrying experiments:', experimentsToRetry);
-  experimentsToRetry.forEach(experiment => {
-    // Remove from pending before processing to avoid potential duplicates
-    pendingExperiments.delete(experiment);
-    processExperiment(experiment).catch(err =>
-      console.error(`Error processing experiment ${experiment.expId}:`, err)
-    );
-  });
-}
-
 function setupRetryMutationObserver() {
   logger('Setting up retry mutation observer, experiments pending:', pendingExperiments);
   // Only set up once
@@ -584,22 +569,18 @@ function setupRetryMutationObserver() {
   const observer = new MutationObserver(() => {
     logger('Mutation observer triggered');
     logger('Pending experiments:', pendingExperiments);
-    if (pendingExperiments.size === 0) {
-      observer.disconnect();
-      window._experimentObserver = null;
-      return;
-    }
-    retryExperiments(pendingExperiments);
+    // prevent infinite loops
+    observer.disconnect();
+    window._experimentObserver = null;
+    const experimentsToRetry = pendingExperiments;
+    pendingExperiments = [];
+    loadExperiments(experimentsToRetry);
   });
 
   observer.observe(document.body, {
     childList: true,
     subtree: true
   });
-
-  setTimeout(() => {
-    retryExperiments();
-  }, 50); // add a timed retry in 50 milli as well
 
   window._experimentObserver = observer;
 }
@@ -616,14 +597,17 @@ async function loadExperiments(experimentsConfigs) {
   totalExperiments = relevantExperiments.length;
   logger('Total experiments for page:', totalExperiments);
 
-
   try {
     await Promise.all(relevantExperiments.map(processExperiment));
   } catch (error) {
     console.error('Error in loadExperiments:', error);
     unblockPage();
   } finally {
-    checkAllExperimentsLoadedAndUnblockPage();
+    if (pendingExperiments.size > 0) {
+      setupRetryMutationObserver();
+    } else {
+      checkAllExperimentsLoadedAndUnblockPage();
+    }
   }
 };
 
