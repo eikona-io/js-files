@@ -557,7 +557,7 @@ async function processExperiment(experimentConfig) {
 }
 
 function setupRetryMutationObserver() {
-  logger('Setting up retry mutation observer');
+  logger('Setting up retry mutation observer, experiments pending:', pendingExperiments);
   // Only set up once
   if (window._experimentObserver) return;
 
