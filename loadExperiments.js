@@ -14,6 +14,7 @@ let userId;
 let loadedExperiments = 0;
 const isMobile = window.innerWidth <= 768;
 let pendingExperiments = [];
+let retryTimeout = true;
 const posthogHost = "https://ph.eikona.io";
 const activeExperimentsHost = `https://d3fjltzrrgg4xq.cloudfront.net/production/active-experiments`;
 const experimentVariantsSeed = 1234567890;
@@ -604,7 +605,20 @@ async function loadExperiments(experimentsConfigs) {
     unblockPage();
   } finally {
     if (pendingExperiments.length > 0) {
-      setupRetryMutationObserver();
+      if (retryTimeout) {
+        // first retry is a timeout
+        // to make the first one fast
+        retryTimeout = false;
+        setTimeout(() => {
+          logger('Retrying experiments after timeout:', pendingExperiments);
+          const experimentsToRetry = pendingExperiments;
+          pendingExperiments = [];
+          loadExperiments(experimentsToRetry);
+        }, 50);
+      } else {
+        // other retries are based on mutation observer
+        setupRetryMutationObserver();
+      }
     } else {
       checkAllExperimentsLoadedAndUnblockPage();
     }
