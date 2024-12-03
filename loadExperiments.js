@@ -557,7 +557,7 @@ async function processExperiment(experimentConfig) {
 }
 
 function retryExperiments() {
-  const experimentsToRetry = Array.from(pendingExperiments);
+  let experimentsToRetry = Array.from(pendingExperiments);
   logger('Retrying experiments:', experimentsToRetry);
   experimentsToRetry.forEach(experiment => {
     // Remove from pending before processing to avoid potential duplicates
