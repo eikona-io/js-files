@@ -471,7 +471,7 @@ async function processExperiment(experimentConfig) {
   const nofElements = elements.length;
   if (nofElements === 0) {
     logger(`No elements found for experiment ${expId}`);
-    pendingExperiments.add(experimentConfig);
+    pendingExperiments.push(experimentConfig);
     return;
   }
   logger('Experiment variant:', expId, variantKey);
