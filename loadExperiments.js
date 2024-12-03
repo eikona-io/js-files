@@ -580,6 +580,7 @@ function setupRetryMutationObserver() {
   }
   const observer = new MutationObserver(() => {
     logger('Mutation observer triggered');
+    logger('Pending experiments:', pendingExperiments);
     if (pendingExperiments.size === 0) {
       observer.disconnect();
       window._experimentObserver = null;
