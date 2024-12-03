@@ -603,7 +603,7 @@ async function loadExperiments(experimentsConfigs) {
     console.error('Error in loadExperiments:', error);
     unblockPage();
   } finally {
-    if (pendingExperiments.size > 0) {
+    if (pendingExperiments.length > 0) {
       setupRetryMutationObserver();
     } else {
       checkAllExperimentsLoadedAndUnblockPage();
