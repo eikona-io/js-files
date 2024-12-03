@@ -556,8 +556,9 @@ async function processExperiment(experimentConfig) {
   }
 }
 
-function retryExperiments() {
-  let experimentsToRetry = Array.from(pendingExperiments);
+function retryExperiments(experiments) {
+  logger('Retrying experiments:', experiments);
+  let experimentsToRetry = Array.from(experiments);
   logger('Retrying experiments:', experimentsToRetry);
   experimentsToRetry.forEach(experiment => {
     // Remove from pending before processing to avoid potential duplicates
@@ -588,7 +589,7 @@ function setupRetryMutationObserver() {
       window._experimentObserver = null;
       return;
     }
-    retryExperiments();
+    retryExperiments(pendingExperiments);
   });
 
   observer.observe(document.body, {
