@@ -568,8 +568,8 @@ function setupRetryMutationObserver() {
     return;
   }
   const retryExperiments = () => {
-    logger('Retrying experiments');
     const experimentsToRetry = Array.from(pendingExperiments);
+    logger('Retrying experiments:', experimentsToRetry);
     experimentsToRetry.forEach(experiment => {
       // Remove from pending before processing to avoid potential duplicates
       pendingExperiments.delete(experiment);
