@@ -567,15 +567,8 @@ function setupRetryMutationObserver() {
     document.addEventListener('DOMContentLoaded', () => setupRetryMutationObserver());
     return;
   }
-  const observer = new MutationObserver(() => {
-    logger('Mutation observer triggered');
-    if (pendingExperiments.size === 0) {
-      observer.disconnect();
-      window._experimentObserver = null;
-      return;
-    }
-
-    // Try processing all pending experiments again
+  const retryExperiments = () => {
+    logger('Retrying experiments');
     const experimentsToRetry = Array.from(pendingExperiments);
     experimentsToRetry.forEach(experiment => {
       // Remove from pending before processing to avoid potential duplicates
@@ -584,12 +577,25 @@ function setupRetryMutationObserver() {
         console.error(`Error processing experiment ${experiment.expId}:`, err)
       );
     });
+  }
+  const observer = new MutationObserver(() => {
+    logger('Mutation observer triggered');
+    if (pendingExperiments.size === 0) {
+      observer.disconnect();
+      window._experimentObserver = null;
+      return;
+    }
+    retryExperiments();
   });
 
   observer.observe(document.body, {
     childList: true,
     subtree: true
   });
+
+  setTimeout(() => {
+    retryExperiments();
+  }, 50); // add a timed retry in 50 milli as well
 
   window._experimentObserver = observer;
 }
