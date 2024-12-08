@@ -380,6 +380,11 @@ function handleImgTag(element, asset, elementSize, isMobileAsset, imageUrl) {
   if (sourceElement) {
     sourceElement.remove();
   }
+  Object.defineProperty(element, 'src', {
+    value: imageUrl,
+    writable: false,
+    configurable: false
+  });
 }
 
 function handleDivTag(element, asset, elementSize, isMobileAsset, imageUrl) {
