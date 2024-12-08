@@ -370,7 +370,9 @@ function handleImgTag(element, asset, elementSize, isMobileAsset, imageUrl) {
     parentDiv.appendChild(copyDiv);
     addCopy(copyDiv, asset);
   }
+  logger('element.src', element.src);
   element.src = imageUrl;
+  logger('element.src', element.src);
   element.srcset = "";
   element.style.objectFit = 'cover';
   const sourceElement = element.parentElement.querySelector('source');
