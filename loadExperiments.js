@@ -429,7 +429,7 @@ function createLoadImagePromise(imageUrl, element) {
     const img = new Image();
     img.onload = () => {
       incrementLoadedExperiments();
-      logger(`Full element tag:`, element.outerHTML);
+      logger(`Full element tag:`, element);
       resolve();
     };
     img.onerror = (error) => {
