@@ -373,6 +373,7 @@ function handleImgTag(element, asset, elementSize, isMobileAsset, imageUrl) {
   logger('element.src', element.src);
   element.src = imageUrl;
   logger('element.src', element.src);
+  logger('element 1', element);
   element.srcset = "";
   element.style.objectFit = 'cover';
   const sourceElement = element.parentElement.querySelector('source');
