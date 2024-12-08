@@ -335,7 +335,11 @@ function getExperimentVariant(experimentConfig) {
   const expFQId = getFQExperimentId(experimentConfig);
   const variants = JSON.parse(localStorage.getItem(experimentVariantsLocalStorageKey) || '{}');
   // update posthog about feature flag variant
-  posthog.getFeatureFlag(expFQId);
+  try {
+    posthog.getFeatureFlag(expFQId);
+  } catch (error) {
+    logger('Error updating PostHog:', error);
+  }
 
   const variant = variants[expFQId];
   if (!variant) {
@@ -436,11 +440,55 @@ function createLoadImagePromise(imageUrl, element) {
   });
 }
 
-// Modify the early return for missing elements
+function evaluateElementsStructure(elementStructure) {
+  if (!elementStructure || !Array.isArray(elementStructure)) {
+    return null;
+  }
+
+  // Helper function to evaluate a single element structure
+  function evaluateSingleStructure(structure) {
+    // If structure is a string (XPath), evaluate it directly
+    if (typeof structure === 'string') {
+      return evaluateXPathWithFallback(structure);
+    }
+
+    // If structure has operator and elements
+    if (structure.operator && Array.isArray(structure.elements)) {
+      const results = structure.elements.map(element => evaluateSingleStructure(element));
+
+      if (structure.operator.toLowerCase() === 'and') {
+        // All results must have elements for AND
+        const hasEmptyResults = results.some(result => !result || result.length === 0);
+        if (hasEmptyResults) {
+          return null;
+        }
+        // Combine all results
+        return results.reduce((acc, curr) => acc.concat(curr), []);
+      }
+
+      if (structure.operator.toLowerCase() === 'or') {
+        // Combine all non-null results for OR
+        const combinedResults = results
+          .filter(result => result && result.length > 0)
+          .reduce((acc, curr) => acc.concat(curr), []);
+        return combinedResults.length > 0 ? combinedResults : null;
+      }
+    }
+
+    return null;
+  }
+
+  // Process all root elements
+  const results = elementStructure.map(structure => evaluateSingleStructure(structure))
+    .filter(result => result && result.length > 0);
+
+  return results.length > 0 ? results.reduce((acc, curr) => acc.concat(curr), []) : null;
+}
+
 async function processExperiment(experimentConfig) {
   const {
     expId = '',
-    xPaths = [],
+    elements = [],
     sitePath = '',
     textXPaths = [],
     audiences = [],
@@ -455,26 +503,21 @@ async function processExperiment(experimentConfig) {
     return;
   }
 
+  const foundElements = evaluateElementsStructure(elements);
+  logger('Found elements for experiment:', expId, foundElements);
+  if (foundElements === null) {
+    logger(`No elements found for experiment ${expId}`);
+    gPendingExperiments.push(experimentConfig);
+    return;
+  }
 
-  let elements = [];
-  xPaths.forEach(xpath => {
-    const matchingElements = evaluateXPathWithFallback(xpath);
-    elements = elements.concat(matchingElements);
-  });
   let textElements = [];
   textXPaths.forEach(xpath => {
     const matchingElements = evaluateXPathWithFallback(xpath);
     textElements = textElements.concat(matchingElements);
   });
 
-  logger('Found elements for experiment:', expId, elements);
   logger('Found text elements for experiment:', expId, textElements);
-  const nofElements = elements.length;
-  if (nofElements === 0) {
-    logger(`No elements found for experiment ${expId}`);
-    gPendingExperiments.push(experimentConfig);
-    return;
-  }
   logger('Experiment variant:', expId, variantKey);
   if (variantKey === 'control') {
     incrementLoadedExperiments();
