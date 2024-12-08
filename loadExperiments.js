@@ -454,47 +454,67 @@ function createLoadImagePromise(imageUrl, element) {
 
 function evaluateElementsStructure(elementStructure) {
   if (!elementStructure || !Array.isArray(elementStructure)) {
-    return null;
+    return { elements: [], requiresReload: false };
   }
 
-  // Helper function to evaluate a single element structure
   function evaluateSingleStructure(structure) {
-    // If structure is a string (XPath), evaluate it directly
-    if (typeof structure === 'string') {
-      return evaluateXPathWithFallback(structure);
-    }
-
-    // If structure has operator and elements
     if (structure.operator && Array.isArray(structure.elements)) {
-      const results = structure.elements.map(element => evaluateSingleStructure(element));
+      if (structure.operator === 'xpath' && Array.isArray(structure.elements)) {
+        const results = structure.elements
+          .map(xpath => evaluateXPathWithFallback(xpath))
+          .filter(result => result && result.length > 0)
+          .reduce((acc, curr) => acc.concat(curr), []);
+
+        return {
+          elements: results,
+          requiresReload: structure.allow_lazy_load && results.length === 0
+        };
+      }
+
+      const subResults = structure.elements.map(element => evaluateSingleStructure(element));
 
       if (structure.operator.toLowerCase() === 'and') {
-        // All results must have elements for AND
-        const hasEmptyResults = results.some(result => !result || result.length === 0);
-        if (hasEmptyResults) {
-          return null;
+        // combine all non-empty results for AND
+        // if any of the results require a reload, the entire structure requires a reload
+        // if any of the results are empty without a reload, the entire structure is empty
+        let andElements = [];
+        let requiresReload = false;
+        for (const result of subResults) {
+          if (result.elements.length > 0) {
+            andElements = andElements.concat(result.elements);
+          } else {
+            if (result.requiresReload) {
+              requiresReload = true;
+            }
+            else {
+              return { elements: [], requiresReload: true };
+            }
+          }
         }
-        // Combine all results
-        return results.reduce((acc, curr) => acc.concat(curr), []);
+        return { elements: andElements, requiresReload: requiresReload };
       }
 
       if (structure.operator.toLowerCase() === 'or') {
-        // Combine all non-null results for OR
-        const combinedResults = results
-          .filter(result => result && result.length > 0)
-          .reduce((acc, curr) => acc.concat(curr), []);
-        return combinedResults.length > 0 ? combinedResults : null;
+        // combine all the non-empty results for OR
+        // if any of the results require a reload, the entire structure requires a reload
+        const combinedElements = subResults.reduce((acc, curr) => acc.concat(curr.elements), []);
+        return {
+          elements: combinedElements,
+          requiresReload: subResults.some(r => r.requiresReload)
+        };
       }
     }
 
-    return null;
+    return { elements: [], requiresReload: false };
   }
 
-  // Process all root elements
-  const results = elementStructure.map(structure => evaluateSingleStructure(structure))
-    .filter(result => result && result.length > 0);
+  if (elementStructure.length !== 1) {
+    logger('Element structure has more then 1 root elements: ', elementStructure.length);
+    return { elements: [], requiresReload: false };
+  }
+  const results = evaluateSingleStructure(elementStructure[0]);
 
-  return results.length > 0 ? results.reduce((acc, curr) => acc.concat(curr), []) : null;
+  return results;
 }
 
 async function processExperiment(experimentConfig) {
@@ -517,12 +537,15 @@ async function processExperiment(experimentConfig) {
 
   const foundElements = evaluateElementsStructure(elements);
   logger('Found elements for experiment:', expId, foundElements);
-  if (foundElements === null) {
-    logger(`No elements found for experiment ${expId}`);
+  if (foundElements.elements.length === 0 || foundElements.requiresReload) {
+    logger(`Experiment ${expId} requires reload`);
     gPendingExperiments.push(experimentConfig);
-    return;
+    if (foundElements.elements.length === 0) {
+      logger(`No elements found for experiment ${expId}`);
+      return;
+    }
   }
-  const nofElements = foundElements.length;
+  const nofElements = foundElements.elements.length;
 
   let textElements = [];
   textXPaths.forEach(xpath => {
@@ -574,7 +597,7 @@ async function processExperiment(experimentConfig) {
     if (imageUrl) {
       const assetId = asset.id;
       logger('Processing asset:', assetId, 'for experiment:', expId);
-      foundElements.forEach(element => {
+      foundElements.elements.forEach(element => {
         logger('Processing element:', element, 'for experiment:', expId);
         // check that we are changing the right element
         // (the experiments in the CMS have the same ID or alt text as the elements)
