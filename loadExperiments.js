@@ -542,6 +542,12 @@ async function processExperiment(experimentConfig) {
     gPendingExperiments.push(experimentConfig);
     if (foundElements.elements.length === 0) {
       logger(`No elements found for experiment ${expId}`);
+      if (foundElements.requiresReload) {
+        // this is HACKY and wrong.
+        // we should increment by the number of experiments
+        // that require a reload and not just 1
+        incrementLoadedExperiments();
+      }
       return;
     }
   }
