@@ -562,7 +562,7 @@ async function processExperiment(experimentConfig) {
     if (imageUrl) {
       const assetId = asset.id;
       logger('Processing asset:', assetId, 'for experiment:', expId);
-      elements.forEach(element => {
+      foundElements.forEach(element => {
         logger('Processing element:', element, 'for experiment:', expId);
         // check that we are changing the right element
         // (the experiments in the CMS have the same ID or alt text as the elements)
