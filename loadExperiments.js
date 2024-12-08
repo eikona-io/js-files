@@ -510,6 +510,7 @@ async function processExperiment(experimentConfig) {
     gPendingExperiments.push(experimentConfig);
     return;
   }
+  const nofElements = foundElements.length;
 
   let textElements = [];
   textXPaths.forEach(xpath => {
