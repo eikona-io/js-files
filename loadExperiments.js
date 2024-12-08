@@ -586,6 +586,7 @@ async function processExperiment(experimentConfig) {
             } else if (tagName === 'video') {
               handleVideoTag(element, asset, elementSize, isMobileAsset, imageUrl);
             }
+            logger('Loading image for element:', element, 'for experiment:', expId);
             const loadImagePromise = createLoadImagePromise(imageUrl, element);
             loadImagePromise.then(() => {
               logger(`Image loaded successfully for experiment ${expId}`);
