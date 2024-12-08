@@ -350,6 +350,14 @@ function getExperimentVariant(experimentConfig) {
   return variantKey;
 }
 
+function lockElementProperty(element, property, value) {
+  Object.defineProperty(element, property, {
+    value: value,
+    writable: false,
+    configurable: false
+  });
+}
+
 function handleImgTag(element, asset, elementSize, isMobileAsset, imageUrl) {
   if (asset.copyType !== 'none') {
     const parentDiv = document.createElement('div');
@@ -370,25 +378,19 @@ function handleImgTag(element, asset, elementSize, isMobileAsset, imageUrl) {
     parentDiv.appendChild(copyDiv);
     addCopy(copyDiv, asset);
   }
-  logger('element.src', element.src);
   element.src = imageUrl;
-  logger('element.src', element.src);
-  logger('element 1', element);
   element.srcset = "";
   element.style.objectFit = 'cover';
   const sourceElement = element.parentElement.querySelector('source');
   if (sourceElement) {
     sourceElement.remove();
   }
-  Object.defineProperty(element, 'src', {
-    value: imageUrl,
-    writable: false,
-    configurable: false
-  });
+  lockElementProperty(element, 'src', imageUrl);
 }
 
 function handleDivTag(element, asset, elementSize, isMobileAsset, imageUrl) {
-  element.style.backgroundImage = `url('${imageUrl}')`;
+  const backgroundImage = `url('${imageUrl}')`;
+  element.style.backgroundImage = backgroundImage;
   element.style.backgroundRepeat = 'no-repeat';
   element.style.backgroundPosition = 'center';
   element.style.backgroundSize = !isMobileAsset ? 'cover' : 'contain';
@@ -397,6 +399,7 @@ function handleDivTag(element, asset, elementSize, isMobileAsset, imageUrl) {
   if (asset.copyType !== 'none') {
     addCopy(element, asset);
   }
+  lockElementProperty(element, 'backgroundImage', backgroundImage);
 }
 
 function handleVideoTag(element, asset, elementSize, isMobileAsset, imageUrl) {
@@ -406,6 +409,7 @@ function handleVideoTag(element, asset, elementSize, isMobileAsset, imageUrl) {
   img.id = parentElement.id;
   img.alt = parentElement.getAttribute('alt') || '';
   img.className = parentElement.className;
+  lockElementProperty(img, 'src', imageUrl);
   // preserve the original image size
   if (elementSize.width > 0 && elementSize.height > 0 && !isMobileAsset) {
     img.style.width = `${elementSize.width}px`;
@@ -594,7 +598,6 @@ async function processExperiment(experimentConfig) {
             } else if (tagName === 'video') {
               handleVideoTag(element, asset, elementSize, isMobileAsset, imageUrl);
             }
-            logger('Loading image for element:', element, 'for experiment:', expId);
             const loadImagePromise = createLoadImagePromise(imageUrl, element);
             loadImagePromise.then(() => {
               logger(`Image loaded successfully for experiment ${expId}`);
