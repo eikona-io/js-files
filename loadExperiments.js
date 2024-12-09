@@ -535,6 +535,22 @@ async function processExperiment(experimentConfig) {
     return;
   }
 
+  logger('Experiment variant:', expId, variantKey);
+  if (variantKey === 'control') {
+    incrementLoadedExperiments();
+    return;
+  }
+
+  // fetch assets for the experiment
+  const FQExpId = getFQExperimentId(experimentConfig);
+  logger('Fetching assets for experiment:', FQExpId, 'with variant:', variantKey);
+  const experimentAssets = await fetchExperimentAssets(FQExpId, variantKey);
+  if (!experimentAssets) {
+    logger(`No assets found for experiment ${expId}`);
+    incrementLoadedExperiments();
+    return;
+  }
+
   const foundElements = evaluateElementsStructure(elements);
   logger('Found elements for experiment:', expId, foundElements);
   if (foundElements.elements.length === 0 || foundElements.requiresReload) {
@@ -560,22 +576,7 @@ async function processExperiment(experimentConfig) {
   });
 
   logger('Found text elements for experiment:', expId, textElements);
-  logger('Experiment variant:', expId, variantKey);
-  if (variantKey === 'control') {
-    incrementLoadedExperiments();
-    return;
-  }
   removeTextFromElements(textElements);
-
-  // fetch assets for the experiment
-  const FQExpId = getFQExperimentId(experimentConfig);
-  logger('Fetching assets for experiment:', FQExpId, 'with variant:', variantKey);
-  const experimentAssets = await fetchExperimentAssets(FQExpId, variantKey);
-  if (!experimentAssets) {
-    logger(`No assets found for experiment ${expId}`);
-    incrementLoadedExperiments();
-    return;
-  }
 
   // check assets constraints and experiment type
   const nofAssets = experimentAssets.length;
