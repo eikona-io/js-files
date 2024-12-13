@@ -1045,4 +1045,32 @@ function createBanner(divElement, options = {}) {
   }
 }
 
+// HACKY function for demoing the dashboard
+function overrideVariants(variantId) {
+  // Get existing experiments from localStorage
+  const experimentsConfigs = JSON.parse(localStorage.getItem(activeExperimentsLocalStorageKey));
+  if (!experimentsConfigs) {
+    console.warn('No experiments found in localStorage');
+    return;
+  }
 
+  // Create new variants object with override
+  const newVariants = {};
+  experimentsConfigs.experiments.forEach(config => {
+    const expFQId = getFQExperimentId(config);
+    newVariants[expFQId] = variantId;
+  });
+
+  // Store new variants in localStorage
+  localStorage.setItem(experimentVariantsLocalStorageKey, JSON.stringify(newVariants));
+
+  // Reset experiment counters
+  gLoadedExperiments = 0;
+  gPendingExperiments = [];
+  gRetryTimeout = true;
+
+  // Reload experiments
+  loadExperiments(experimentsConfigs.experiments);
+}
+
+window.overrideVariants = overrideVariants;
