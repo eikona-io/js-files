@@ -1048,6 +1048,7 @@ function createBanner(divElement, options = {}) {
 // HACKY function for demoing the dashboard
 function overrideVariants(variantId) {
   // Get existing experiments from localStorage
+  logger('Overriding variants:', variantId);
   const experimentsConfigs = JSON.parse(localStorage.getItem(activeExperimentsLocalStorageKey));
   if (!experimentsConfigs) {
     console.warn('No experiments found in localStorage');
