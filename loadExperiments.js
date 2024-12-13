@@ -351,10 +351,20 @@ function getExperimentVariant(experimentConfig) {
 }
 
 function lockElementProperty(element, property, value) {
+  let internalValue = value;
   Object.defineProperty(element, property, {
-    value: value,
-    writable: false,
-    configurable: false
+    get: function() {
+      return internalValue;
+    },
+    set: function(newValue) {
+      // Allow modifications from this script's stack trace
+      // do not allow modifications from other scripts
+      const stack = new Error().stack;
+      if (stack.includes('loadExperiments.js')) {
+        internalValue = newValue;
+      }
+    },
+    configurable: true
   });
 }
 
