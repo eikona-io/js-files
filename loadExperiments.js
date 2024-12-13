@@ -14,6 +14,7 @@ let gUserId;
 let gLoadedExperiments = 0;
 let gPendingExperiments = [];
 let gRetryTimeout = true;
+let gOverride = false;
 const isMobile = window.innerWidth <= 768;
 const posthogHost = "https://ph.eikona.io";
 const activeExperimentsHost = `https://d3fjltzrrgg4xq.cloudfront.net/production/active-experiments`;
@@ -351,6 +352,10 @@ function getExperimentVariant(experimentConfig) {
 }
 
 function lockElementProperty(element, property, value) {
+  if (gOverride) {
+    // allow override multiple timesfor testing
+    return;
+  }
   Object.defineProperty(element, property, {
     value: value,
     writable: false,
@@ -1047,30 +1052,26 @@ function createBanner(divElement, options = {}) {
 
 // HACKY function for demoing the dashboard
 function overrideVariants(variantId) {
-  // Get existing experiments from localStorage
   logger('Overriding variants:', variantId);
+  gOverride = true;
   const experimentsConfigs = JSON.parse(localStorage.getItem(activeExperimentsLocalStorageKey));
   if (!experimentsConfigs) {
     console.warn('No experiments found in localStorage');
     return;
   }
 
-  // Create new variants object with override
   const newVariants = {};
   experimentsConfigs.experiments.forEach(config => {
     const expFQId = getFQExperimentId(config);
     newVariants[expFQId] = variantId;
   });
 
-  // Store new variants in localStorage
   localStorage.setItem(experimentVariantsLocalStorageKey, JSON.stringify(newVariants));
 
-  // Reset experiment counters
   gLoadedExperiments = 0;
   gPendingExperiments = [];
   gRetryTimeout = true;
 
-  // Reload experiments
   loadExperiments(experimentsConfigs.experiments);
 }
 
