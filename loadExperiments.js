@@ -352,14 +352,9 @@ function getExperimentVariant(experimentConfig) {
 }
 
 function lockElementProperty(element, property, value) {
-  if (gOverride) {
-    // allow override multiple timesfor testing
-    return;
-  }
   Object.defineProperty(element, property, {
     value: value,
     writable: false,
-    configurable: false
   });
 }
 
@@ -383,19 +378,18 @@ function handleImgTag(element, asset, elementSize, isMobileAsset, imageUrl) {
     parentDiv.appendChild(copyDiv);
     addCopy(copyDiv, asset);
   }
-  element.src = imageUrl;
+  lockElementProperty(element, 'src', imageUrl);
   element.srcset = "";
   element.style.objectFit = 'cover';
   const sourceElement = element.parentElement.querySelector('source');
   if (sourceElement) {
     sourceElement.remove();
   }
-  lockElementProperty(element, 'src', imageUrl);
 }
 
 function handleDivTag(element, asset, elementSize, isMobileAsset, imageUrl) {
   const backgroundImage = `url('${imageUrl}')`;
-  element.style.backgroundImage = backgroundImage;
+  lockElementProperty(element, 'backgroundImage', backgroundImage);
   element.style.backgroundRepeat = 'no-repeat';
   element.style.backgroundPosition = 'center';
   element.style.backgroundSize = !isMobileAsset ? 'cover' : 'contain';
@@ -404,17 +398,15 @@ function handleDivTag(element, asset, elementSize, isMobileAsset, imageUrl) {
   if (asset.copyType !== 'none') {
     addCopy(element, asset);
   }
-  lockElementProperty(element, 'backgroundImage', backgroundImage);
 }
 
 function handleVideoTag(element, asset, elementSize, isMobileAsset, imageUrl) {
   const parentElement = element.parentNode;
   const img = document.createElement('img');
-  img.src = imageUrl;
+  lockElementProperty(img, 'src', imageUrl);
   img.id = parentElement.id;
   img.alt = parentElement.getAttribute('alt') || '';
   img.className = parentElement.className;
-  lockElementProperty(img, 'src', imageUrl);
   // preserve the original image size
   if (elementSize.width > 0 && elementSize.height > 0 && !isMobileAsset) {
     img.style.width = `${elementSize.width}px`;
