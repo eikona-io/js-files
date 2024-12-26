@@ -358,7 +358,7 @@ function lockElementProperty(element, property, value) {
     configurable: true,
   });
   logger('element src', element.src);
-  element[property] = value;
+  element.setAttribute(property, value);
   logger('element src', element.src);
   Object.defineProperty(element, property, {
     value: value,
