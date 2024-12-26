@@ -385,6 +385,7 @@ function handleImgTag(element, asset, elementSize, isMobileAsset, imageUrl) {
     parentDiv.appendChild(copyDiv);
     addCopy(copyDiv, asset);
   }
+  logger('elementttt src', element.src);
   lockElementProperty(element, 'src', imageUrl);
   element.srcset = "";
   element.style.objectFit = 'cover';
