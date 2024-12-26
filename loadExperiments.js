@@ -353,7 +353,10 @@ function getExperimentVariant(experimentConfig) {
 
 function lockElementProperty(element, property, value) {
   Object.defineProperty(element, property, {
-    value: value,
+    writable: true,
+  });
+  element[property] = value;
+  Object.defineProperty(element, property, {
     writable: false,
   });
 }
