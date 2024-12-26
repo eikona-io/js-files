@@ -357,9 +357,7 @@ function lockElementProperty(element, property, value) {
     writable: true,
     configurable: true,
   });
-  logger('element src', element.src);
   element.setAttribute(property, value);
-  logger('element src', element.src);
   Object.defineProperty(element, property, {
     value: value,
     writable: false,
@@ -387,10 +385,7 @@ function handleImgTag(element, asset, elementSize, isMobileAsset, imageUrl) {
     parentDiv.appendChild(copyDiv);
     addCopy(copyDiv, asset);
   }
-  logger('elementttt src', element.src);
   lockElementProperty(element, 'src', imageUrl);
-  logger('elementttt2 src', element.src);
-  logger('e src', element);
   element.srcset = "";
   element.style.objectFit = 'cover';
   const sourceElement = element.parentElement.querySelector('source');
@@ -449,9 +444,7 @@ function createLoadImagePromise(imageUrl, element) {
   return new Promise((resolve, reject) => {
     const img = new Image();
     img.onload = () => {
-      logger('elementttt! loaded!', element);
       incrementLoadedExperiments();
-      logger(`Full element tag:`, element);
       resolve();
     };
     img.onerror = (error) => {
@@ -633,7 +626,6 @@ async function processExperiment(experimentConfig) {
           if (['img', 'div', 'video', 'section'].includes(tagName)) {
             if (tagName === 'img') {
               handleImgTag(element, asset, elementSize, isMobileAsset, imageUrl);
-              logger('elementttt!', element);
             } else if (tagName === 'div' || tagName === 'section') {
               handleDivTag(element, asset, elementSize, isMobileAsset, imageUrl);
             } else if (tagName === 'video') {
