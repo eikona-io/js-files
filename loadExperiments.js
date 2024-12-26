@@ -356,7 +356,9 @@ function lockElementProperty(element, property, value) {
     writable: true,
     configurable: true,
   });
+  logger('element src', element.src);
   element[property] = value;
+  logger('element src', element.src);
   Object.defineProperty(element, property, {
     writable: false,
     configurable: true,
