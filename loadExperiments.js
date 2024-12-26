@@ -389,6 +389,7 @@ function handleImgTag(element, asset, elementSize, isMobileAsset, imageUrl) {
   }
   logger('elementttt src', element.src);
   lockElementProperty(element, 'src', imageUrl);
+  logger('elementttt2 src', element.src);
   logger('e src', element);
   element.srcset = "";
   element.style.objectFit = 'cover';
