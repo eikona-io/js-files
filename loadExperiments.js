@@ -447,6 +447,7 @@ function createLoadImagePromise(imageUrl, element) {
   return new Promise((resolve, reject) => {
     const img = new Image();
     img.onload = () => {
+      logger('elementttt! loaded!', element);
       incrementLoadedExperiments();
       logger(`Full element tag:`, element);
       resolve();
@@ -630,6 +631,7 @@ async function processExperiment(experimentConfig) {
           if (['img', 'div', 'video', 'section'].includes(tagName)) {
             if (tagName === 'img') {
               handleImgTag(element, asset, elementSize, isMobileAsset, imageUrl);
+              logger('elementttt!', element);
             } else if (tagName === 'div' || tagName === 'section') {
               handleDivTag(element, asset, elementSize, isMobileAsset, imageUrl);
             } else if (tagName === 'video') {
