@@ -640,6 +640,18 @@ async function processExperiment(experimentConfig) {
           }
         }
       });
+    } 
+    // HACKY: handle text experiments
+    else {
+      const textContent = asset.xpath;
+      if (!textContent) {
+        logger(`No text content found for experiment ${expId}`);
+        incrementLoadedExperiments();
+        return;
+      }
+      foundElements.elements.forEach(element => {
+        element.textContent = textContent;
+      });
     }
   }
 }
