@@ -100,6 +100,16 @@ async function fetchExperimentAssets(experimentId, variantKey) {
   return assets;
 }
 
+function getTextContent(asset, variantKey) {
+  const textVariantKey = `${variantKey}_text`;
+  const textContent = asset[textVariantKey];
+  if (!textContent) {
+    logger(`No text content found for experiment ${asset.expId}`);
+    return null;
+  }
+  return textContent;
+}
+
 function generateUserId() {
   if (localStorage.getItem(eikonaUserIdLocalStorageKey)) {
     return localStorage.getItem(eikonaUserIdLocalStorageKey);
@@ -643,7 +653,7 @@ async function processExperiment(experimentConfig) {
     } 
     // HACKY: handle text experiments
     else {
-      const textContent = asset.xpath;
+      const textContent = getTextContent(asset, variantKey);
       if (!textContent) {
         logger(`No text content found for experiment ${expId}`);
         incrementLoadedExperiments();
